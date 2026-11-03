@@ -47,7 +47,7 @@ export function Mq(pos, quat, scl = [1, 1, 1]) { return new THREE.Matrix4().comp
 export function mergeParts(parts, material, name) {
   const geos = parts.map(({ geo, matrix, color = [1, 1, 1] }) => {
     const g = geo.clone(); g.deleteAttribute('uv'); if (matrix) g.applyMatrix4(matrix);
-    const n = g.attributes.position.count, col = new Float32Array(n * 3); for (let i = 0; i < n; i++) { col[i * 3] = color[0]; col[i * 3 + 1] = color[1]; col[i * 3 + 2] = color[2]; }
+    const n = g.attributes.position.count, col = new Float32Array(n * 3), pc = g.attributes.color; for (let i = 0; i < n; i++) { const k = pc ? [pc.getX(i), pc.getY(i), pc.getZ(i)] : [1, 1, 1]; col[i * 3] = color[0] * k[0]; col[i * 3 + 1] = color[1] * k[1]; col[i * 3 + 2] = color[2] * k[2]; }
     g.setAttribute('color', new THREE.BufferAttribute(col, 3)); return g;
   });
   const merged = mergeGeometries(geos, false); geos.forEach((g) => g.dispose()); parts.forEach((p) => p.dispose !== false && p.geo.dispose());

@@ -7,9 +7,9 @@ import { buildTorso } from './geometry/body.js';
 import { buildNeck } from './geometry/neck.js';
 import { buildHeadShell } from './geometry/head.js';
 import { buildEar } from './geometry/ears.js';
-import { buildArmSegments, buildPaw, buildLeg, buildFoot } from './geometry/limbs.js';
+import { buildArmSegments, taperedTube, buildPaw, buildLeg, buildFoot } from './geometry/limbs.js';
 import { buildTail } from './geometry/tail.js';
-import { mergeParts, M4 } from './geometry/helpers.js';
+import { mergeParts, M4, ellipsoidGeo } from './geometry/helpers.js';
 import { buildFace } from './geometry/face.js';
 import { createFaceController } from './face/faceController.js';
 import { startTalk } from './face/talk.js';
@@ -100,13 +100,16 @@ export function createPanda(options = {}) {
       const targets = []; root.traverse((o) => { if (o.isMesh && OUTLINE_PARTS.test(o.userData.pandaPart || '')) targets.push(o); });
       for (const t of targets) { const ol = new THREE.Mesh(t.geometry, matsBundle.outline); ol.name = 'outline'; ol.userData.isOutline = true; t.add(ol); owned.push(ol); }
     }
-    if (tier.fuzz && opts.fuzz !== false && matsBundle.style === 'softClay') {
-      const lowT = { seg: 12, rad: 20, small: 6 };
-      const head = buildHeadShell(lowT, mats0());
-      for (const [lo, parent] of [[head, rig.head]]) {
-        const shells = makeFuzzShells(lo, { shells: tier.fuzzShells, length: 0.02 });
-        shells.position.copy(lo.position); parent.add(shells); owned.push(shells);
-        shells.traverse((c) => { if (c.isMesh) c.castShadow = false; });
+    if (tier.fuzzShells > 0 && opts.fuzz !== false && matsBundle.style === 'softClay') {
+      // fuzz halo: low-res copies of head/torso (white) and arms (black); shared materials so the material count stays small
+      const T = tier.fuzzTier, white = matsBundle.fuzzWhite, black = matsBundle.fuzzBlack, nul = { head: null, fur: null, torso: null, limb: null };
+      const put = (parent, geo, mat, pos) => { const m = makeFuzzShells(geo, mat, { shells: tier.fuzzShells }); if (pos) m.position.copy(pos); parent.add(m); owned.push(m); };
+      const hg = ellipsoidGeo(P.head.radii, T.seg, T.rad); hg.translate(P.head.center[0] - P.joints.head[0], P.head.center[1] - P.joints.head[1], P.head.center[2] - P.joints.head[2]);
+      put(rig.head, hg, white);
+      put(rig.belly, buildTorso(T, nul, BELLY_Y).geometry, white);
+      if (tier.fuzzArms) for (const side of ['L', 'R']) {
+        const aT = { small: 3, lite: true }, f = (len, r0, r1) => taperedTube(len, r0, r1, aT), ak = { shells: tier.fuzzArmShells };
+        for (const [parent, g] of [[rig['upperArm' + side], f(P.arm.upperLen, P.arm.upperR, P.arm.elbowR)], [rig['elbow' + side], f(P.arm.foreLen, P.arm.elbowR, P.arm.wristR)]]) { const m = makeFuzzShells(g, black, ak); parent.add(m); owned.push(m); }
       }
     }
   }

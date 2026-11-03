@@ -17,7 +17,7 @@
  */
 export const SOCKET_NAMES = ['handSocketL', 'handSocketR', 'headTop', 'eyeBridge', 'neckBase', 'chestFront', 'torsoWrap', 'backCenter', 'earSocketL', 'earSocketR', 'footSocketL', 'footSocketR', 'mouthSocket', 'noseSocket'];
 /** Hideable part names (matched against each mesh's userData.pandaPart, prefix match). */
-export const PART_NAMES = ['torso', 'bellyMesh', 'head', 'tailMesh', 'earL', 'earR', 'upperArmL', 'upperArmR', 'foreArmL', 'foreArmR', 'pawL', 'pawR', 'legL', 'legR', 'footL', 'footR', 'nose', 'eyePatches', 'brow'];
+export const PART_NAMES = ['torso', 'neck', 'head', 'tailMesh', 'earL', 'earR', 'upperArmL', 'upperArmR', 'foreArmL', 'foreArmR', 'pawL', 'pawR', 'legL', 'legR', 'footL', 'footR', 'nose', 'brow'];
 
 /** Throws a clear Error describing every problem. Returns the outfit when valid. */
 export function validateOutfit(outfit) {

@@ -8,7 +8,7 @@ import { installReviewApi } from './review.js';
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
 document.body.appendChild(renderer.domElement);
 
@@ -23,6 +23,7 @@ const q = new URLSearchParams(location.search);
 const panda = createPanda({ quality: q.get('quality') || 'high', style: q.get('style') || 'softClay', pose: q.get('pose') || 'relaxedIdle', receiveShadow: q.get('rs') !== '0', castShadow: q.get('rs') !== '0' });
 scene.add(panda.root);
 
+lighting.onApply = (p) => panda.root.traverse((o) => { const u = o.material?.userData?.uniforms; if (u?.uRim) { u._base ??= u.uRim.value; u.uRim.value = u._base * (p.rimBoost ?? 1); } });   // demo-only: dramatic-rim preset boosts the fur fresnel rim
 const state = { turntable: false, silhouette: false, debug: false, lighting: 'studio', quality: panda.quality, wireframe: false };
 const helpers = new THREE.Group(); scene.add(helpers); helpers.visible = false;
 function buildDebug() {

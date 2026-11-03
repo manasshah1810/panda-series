@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { PROPORTIONS as P, PALETTE as C } from '../config/defaults.js';
 import { part, ellipsoid, ellipsoidGeo, placeOnSurface, projectToEllipsoid, mergeParts, M4, Mq, ratio } from './helpers.js';
 
@@ -13,19 +14,32 @@ export function muzzleZ(x, y, lift = 0.004) {
   return m.center[2] + m.radii[2] * Math.sqrt(Math.max(0, 1 - nx * nx - ny * ny)) + lift;
 }
 
+/** Brow: a soft tapered ribbon (thick in the middle, pointed at both ends) that curves with the forehead (z follows the head
+ *  curvature, a little deeper at the ends so it can never float). Lies in the brow-local XY plane, authored along +X. */
+function browGeo(tier) {
+  const L = P.brow.length, Wd = P.brow.width, nx = tier.lite ? 8 : 14, ny = 4, pos = [], idx = [], R = 0.55;
+  for (let i = 0; i <= nx; i++) { const u = (i / nx) * 2 - 1, x = u * L, w = Wd * Math.pow(Math.max(0, 1 - Math.abs(u) ** 2.4), 0.6) + 0.0015;
+    for (let j = 0; j <= ny; j++) { const v = (j / ny) * 2 - 1; pos.push(x, v * w, -(x * x) / (2 * R) + 0.0035 + 0.009 * Math.sqrt(Math.max(0, 1 - v * v)) * (1 - Math.abs(u) ** 3)); } }
+  for (let i = 0; i < nx; i++) for (let j = 0; j < ny; j++) { const a = i * (ny + 1) + j, b = (i + 1) * (ny + 1) + j; idx.push(a, b, a + 1, b, b + 1, a + 1); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); return g;
+}
+
+/** Tapers the radius of a TubeGeometry toward both open ends (round, brush-stroke ends instead of blunt cuts). */
+function taperTube(g, curve, segs, radial, ends = 0.16, min = 0.3) {
+  const p = g.attributes.position, c = new THREE.Vector3(), v = new THREE.Vector3();
+  for (let i = 0; i <= segs; i++) { const t = i / segs, e = Math.min(t, 1 - t) / ends, k = e >= 1 ? 1 : min + (1 - min) * Math.sin(e * Math.PI / 2); curve.getPointAt(t, c);
+    for (let j = 0; j <= radial; j++) { const n = i * (radial + 1) + j; v.fromBufferAttribute(p, n).sub(c).multiplyScalar(k).add(c); p.setXYZ(n, v.x, v.y, v.z); } }
+  return g;
+}
+
 /** Builds every facial part, merged by material wherever the parts never move relative to each other. */
 export function buildFace(rig, tier, mats) {
   const owned = []; const sides = {};
   const own = (parent, o) => { parent.add(o); owned.push(o); return o; };
-  const patchParts = [], blushParts = [], shineParts = [];
+  const blushParts = [], shineParts = [];
 
   for (const [side, s] of [['L', 1], ['R', -1]]) {
     const S = {};
-    // ---- eye patch (merged later) ----
-    const pq = placeOnSurface(new THREE.Object3D(), H.c, H.r, s * P.patch.x, P.patch.y, { roll: s * P.patch.tilt, lift: -0.022 });
-    const po = new THREE.Object3D(); placeOnSurface(po, H.c, H.r, s * P.patch.x, P.patch.y, { roll: s * P.patch.tilt, lift: -0.022 });
-    patchParts.push({ geo: ellipsoidGeo(P.patch.radii, tier.small + 4, tier.small + 8), matrix: Mq(toHead(po.position), po.quaternion) });
-
     // ---- eye: sphere + iris + pupil merged into ONE mesh; pivot sits on the patch surface ----
     const e = P.eye;
     const ep = projectToEllipsoid(H.c, H.r, s * e.x, e.y, 1, 0.0);
@@ -37,7 +51,7 @@ export function buildFace(rig, tier, mats) {
       { geo: new THREE.SphereGeometry(e.radius * 0.11, 6, 5), matrix: M4([x + e.radius * 0.28, y - e.radius * 0.30, e.radius * 0.91]) },
     ];
     const eyeParts = [
-      { geo: new THREE.SphereGeometry(e.radius, tier.small + 6, tier.small + 4) },
+      { geo: new THREE.SphereGeometry(e.radius, tier.small + 4, tier.small + 2) },
       { geo: ring, matrix: M4([0, 0, zf(e.radius * 0.66) + 0.0012]), color: ratio(C.eyeWarmRing, C.eyeDark) },
       { geo: disc, matrix: M4([0, 0, zf(e.radius * 0.40) + 0.0022]), color: [0.6, 0.6, 0.6] },
     ];
@@ -54,7 +68,7 @@ export function buildFace(rig, tier, mats) {
     const arc = []; // authored in DOME-local space: the pole (+Y) faces front when the lid is closed; local +Z maps to world -Y
     for (let i = 0; i <= 10; i++) { const x = (i / 10 - 0.5) * 2 * 0.052; const yw = -0.006 - 0.01 * (1 - (x / 0.052) ** 2) + 0.012, zl = -yw; arc.push(new THREE.Vector3(x, Math.sqrt(Math.max(0, e.lidRadius ** 2 - x * x - zl * zl)) + 0.002, zl)); }
     const lidMesh = part(mergeParts([
-      { geo: new THREE.SphereGeometry(e.lidRadius, tier.small + 6, tier.small + 2, 0, Math.PI * 2, 0, Math.PI / 2) },
+      { geo: new THREE.SphereGeometry(e.lidRadius, tier.small + 4, tier.small, 0, Math.PI * 2, 0, Math.PI / 2) },
       { geo: new THREE.TubeGeometry(new THREE.CatmullRomCurve3(arc), 10, 0.0075, 5, false), color: ratio('#52525A', C.furBlack) },
     ], mats.lid, 'lid'), 'eyelid' + side, { cast: false });
     const lidHolder = new THREE.Group(); lidHolder.add(lidMesh); lidPivot.add(lidHolder); owned.push(lidHolder); S.lid = lidHolder;
@@ -64,22 +78,21 @@ export function buildFace(rig, tier, mats) {
     const browPivot = rig['brow' + side]; browPivot.position.copy(toHead(bp.position)); browPivot.quaternion.copy(bp.quaternion);
     browPivot.userData.base = browPivot.position.clone(); browPivot.userData.normal = bp.normal.clone();
     const tilt = new THREE.Group(); tilt.name = 'browTilt' + side; browPivot.add(tilt); owned.push(tilt);
-    const brow = part(new THREE.Mesh(new THREE.CapsuleGeometry(P.brow.size[1], P.brow.size[0] * 2, 4, Math.max(5, tier.small - 2)), mats.brow), 'brow' + side, { cast: false });
-    brow.rotation.z = Math.PI / 2; tilt.add(brow); S.brow = tilt;
+    const brow = part(new THREE.Mesh(browGeo(tier), mats.brow), 'brow' + side, { cast: false });
+    tilt.add(brow); S.brow = tilt;
 
     // ---- cheeks: blush (merged, full tiers) + puff bump (full tiers) ----
     const cp = projectToEllipsoid(H.c, H.r, s * P.cheek.x, P.cheek.y, 1, 0.0);
     if (!tier.lite) {
-      blushParts.push({ geo: new THREE.CircleGeometry(P.cheek.radius, 20), matrix: Mq(toHead(cp.position), cp.quaternion) });
-      const puff = part(ellipsoid([0.13, 0.11, 0.09], tier.small, tier.small + 4, mats.head, 'cheekPuff'), 'cheekPuff' + side);
+      { const pg = new THREE.PlaneGeometry(P.cheek.radius * 2, P.cheek.radius * 1.5, 1, 1); pg.applyMatrix4(Mq(toHead(cp.position), cp.quaternion)); blushParts.push(pg); }
+      const puff = part(ellipsoid([0.13, 0.11, 0.09], 6, 10, mats.fur, 'cheekPuff'), 'cheekPuff' + side);
       puff.position.copy(toHead(cp.position)).addScaledVector(cp.normal, -0.03); puff.quaternion.copy(cp.quaternion); puff.scale.setScalar(0.001);
       own(rig.head, puff); S.puff = puff; S.puffBase = puff.position.clone(); S.puffNormal = cp.normal.clone();
     }
     sides[side] = S;
   }
-  const patches = part(mergeParts(patchParts, mats.patch, 'eyePatches'), 'eyePatches'); own(rig.head, patches);
   let blush = null;
-  if (blushParts.length) { blush = mergeParts(blushParts, mats.blush, 'blush'); blush.castShadow = false; own(rig.head, blush); }
+  if (blushParts.length) { blush = new THREE.Mesh(mergeGeometries(blushParts, false), mats.blush); blush.name = 'blush'; blush.castShadow = false; own(rig.head, blush); }
 
   // ---- nose (rounded inverted triangle) ----
   const nr = P.nose.radii;
@@ -111,17 +124,17 @@ export function buildFace(rig, tier, mats) {
     const zFix = (v, lift) => { v.z = muzzleZ(v.x, v.y, lift) - HJ[2]; v.y -= HJ[1]; return v; };
     const loop = [...up, ...low];
     const phil = [new THREE.Vector3(0, P.nose.center[1] - P.nose.radii[1] * 0.9, 0), new THREE.Vector3(0, my + 0.004, 0)];
-    const tube = (arr, closed, r) => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(arr.map((v) => zFix(v.clone(), 0.006)), closed, 'catmullrom', 0.5), tier.tube, r, 5, closed);
+    const tube = (arr, closed, r) => { const cv = new THREE.CatmullRomCurve3(arr.map((v) => zFix(v.clone(), 0.006)), closed, 'catmullrom', 0.5), g = new THREE.TubeGeometry(cv, tier.tube, r, 6, closed); return closed ? g : taperTube(g, cv, tier.tube, 6); };
     const dark = col(C.noseAndEyes);
     const parts = [{ geo: tube(loop, open > 0.004, P.mouth.radius), color: dark }, { geo: tube(phil, false, P.mouth.radius * 0.8), color: dark }];
     const grid = (j0, j1, xs, lift, color) => {
-      const R = 4, pos = [], idx = [];
-      for (let i = 0; i <= N; i++) { const t = (i / N) * 2 - 1, yU = yAt(t), yL = lowerY(t); for (let j = 0; j <= R; j++) { const v = j0 + (j1 - j0) * (j / R); const p = zFix(new THREE.Vector3(t * hw * xs, yL + (yU - yL) * v, 0), lift); pos.push(p.x, p.y, p.z); } }
+      const R = 4, pos = [], idx = [], cl = [];
+      for (let i = 0; i <= N; i++) { const t = (i / N) * 2 - 1, yU = yAt(t), yL = lowerY(t); for (let j = 0; j <= R; j++) { const v = j0 + (j1 - j0) * (j / R); const p = zFix(new THREE.Vector3(t * hw * xs, yL + (yU - yL) * v, 0), lift); pos.push(p.x, p.y, p.z); const sh = color === 'dark' ? 1 : 1 - 0.5 * Math.pow(Math.max(0, v), 1.5); cl.push(sh, sh, sh); } }
       for (let i = 0; i < N; i++) for (let j = 0; j < R; j++) { const a = i * (R + 1) + j, b = (i + 1) * (R + 1) + j; idx.push(a, b, a + 1, b, b + 1, a + 1); }
-      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(new Array(pos.length).fill(0).map((_, i) => (i % 3 === 2 ? 1 : 0)), 3)); g.setIndex(idx);
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(new Array(pos.length).fill(0).map((_, i) => (i % 3 === 2 ? 1 : 0)), 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(cl, 3)); g.setIndex(idx);
       return { geo: g, color };
     };
-    if (open > 0.004) { parts.push(grid(0, 1, 0.97, 0.0025, col(C.innerMouth))); if (open > 0.03) parts.push(grid(0, 0.45, 0.6, 0.0035, col(C.tongue))); }
+    if (open > 0.004) { parts.push(grid(0, 1, 0.97, 0.0025, col(C.innerMouth))); if (open > 0.03) parts.push(grid(0, 0.36, 0.5, 0.0035, col(C.tongue))); }
     mouth.mesh = mergeParts(parts, mats.mouth, 'mouth'); mouth.mesh.castShadow = false; rig.jaw.add(mouth.mesh);
   };
   mouth.dispose = () => { mouth.sig = ''; if (mouth.mesh) { mouth.mesh.removeFromParent(); mouth.mesh.geometry.dispose(); mouth.mesh = null; } };

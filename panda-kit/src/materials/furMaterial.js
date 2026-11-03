@@ -5,9 +5,10 @@ const lin = (hex) => new THREE.Color(hex); // THREE.Color converts sRGB hex to l
 
 /** Shared shader patches. `fur` = soft fresnel rim + warm shadow tint + lifted floor. `band` = organic black shoulder band.
  *  Everything is procedural: no textures. Works on any MeshStandardMaterial / MeshToonMaterial. */
-export function patchMaterial(mat, { rim = 0, shadowTint = null, floor = null, band = null } = {}) {
+export function patchMaterial(mat, { rim = 0, rimColor = null, shadowTint = null, floor = null, band = null, noise = 0.05, tintVar = 0, patch = null } = {}) {
   const U = {
-    uRimColor: { value: lin(C.rimTint) }, uRim: { value: rim },
+    uRimColor: { value: lin(rimColor || C.rimTint) }, uRim: { value: rim },
+    uNoise: { value: noise }, uTintVar: { value: tintVar }, uPatchOn: { value: patch ? 1 : 0 }, uPatch: { value: new THREE.Vector4(...(patch ? [patch.x, patch.y, patch.A, patch.theta] : [0, 0, 1, 0])) }, uPatchW: { value: patch?.W ?? 0.17 }, uHC: { value: new THREE.Vector3(...(patch?.hc || [0, 0, 0])) }, uHR: { value: new THREE.Vector3(...(patch?.hr || [1, 1, 1])) }, uPatchSoft: { value: patch?.soft ?? 0.07 },
     uShadowTint: { value: lin(shadowTint || '#FFFFFF') }, uShadowAmt: { value: shadowTint ? 1 : 0 },
     uFloor: { value: lin(floor || '#000000') }, uFloorAmt: { value: floor ? 1 : 0 },
     uBandColor: { value: lin(C.furBlack) }, uBandOn: { value: band ? 1 : 0 },
@@ -22,6 +23,10 @@ export function patchMaterial(mat, { rim = 0, shadowTint = null, floor = null, b
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
 varying vec3 vObjPos;
+uniform float uNoise, uTintVar, uPatchOn, uPatchW, uPatchSoft; uniform vec4 uPatch; uniform vec3 uHC, uHR;
+float h3(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+float vn(vec3 p){ vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(h3(i), h3(i + vec3(1,0,0)), f.x), mix(h3(i + vec3(0,1,0)), h3(i + vec3(1,1,0)), f.x), f.y), mix(mix(h3(i + vec3(0,0,1)), h3(i + vec3(1,0,1)), f.x), mix(h3(i + vec3(0,1,1)), h3(i + vec3(1,1,1)), f.x), f.y), f.z); }
 uniform vec3 uRimColor; uniform float uRim; uniform vec3 uShadowTint; uniform float uShadowAmt; uniform vec3 uFloor; uniform float uFloorAmt;
 uniform vec3 uBandColor; uniform float uBandOn; uniform vec3 uBandOffset; uniform float uBandEdge;`)
       .replace('#include <color_fragment>', `
@@ -31,6 +36,20 @@ uniform vec3 uBandColor; uniform float uBandOn; uniform vec3 uBandOffset; unifor
         float edge = uBandEdge + wob;
         float b = smoothstep(edge - 0.012, edge + 0.012, wp.y);
         diffuseColor.rgb = mix(diffuseColor.rgb, uBandColor, b);
+      }
+      if (uPatchOn > 0.5) { // teardrop eye patch painted in head-local space: soft fur-colour change, no geometry
+        vec2 pp = vec2(abs(vObjPos.x) - uPatch.x, vObjPos.y - uPatch.y); float sn = sin(uPatch.w), cs = cos(uPatch.w);
+        float a = dot(pp, vec2(sn, -cs)), bb = dot(pp, vec2(cs, sn)); float t = clamp(a / uPatch.z, -1.0, 1.0);
+        float wob = 0.035 * sin(atan(bb, a) * 5.0 + 1.0) + 0.02 * sin(atan(bb, a) * 9.0);
+        float e = length(vec2(a / uPatch.z, bb / (uPatchW * (0.82 + 0.3 * t)))) - 1.0 + wob;
+        float onHead = 1.0 - smoothstep(1.0, 1.05, length((vObjPos - uHC) / uHR)); // muzzle / tufts stand proud of the head ellipsoid: no patch there
+        float pm = (1.0 - smoothstep(-uPatchSoft, uPatchSoft, e)) * smoothstep(0.02, 0.18, vObjPos.z) * onHead;
+        diffuseColor.rgb = mix(diffuseColor.rgb, uBandColor, pm);
+      }
+      { // fur-direction streaks (stretched along Y) + low-frequency tint drift; subtle, no textures
+        float fn = vn(vec3(vObjPos.x * 40.0, vObjPos.y * 10.0, vObjPos.z * 40.0)) * 0.6 + vn(vObjPos * 110.0) * 0.4;
+        diffuseColor.rgb *= 1.0 + (fn - 0.5) * uNoise;
+        diffuseColor.rgb *= 1.0 + (vn(vObjPos * 4.0 + 3.0) - 0.5) * uTintVar;
       }
       #include <color_fragment>`)
       .replace('#include <opaque_fragment>', `

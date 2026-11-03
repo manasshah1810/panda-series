@@ -25,7 +25,7 @@ export function bakeAO(mesh, kind, { cream = null, rootInv = null } = {}) {
     occ += ss(0.32, 0.0, v.y) * 0.5;                                                                  // contact with the floor
     occ = Math.min(occ, 0.78);
     // warm-tinted multiplier: shadow side is warmer + a bit lighter than neutral grey
-    let r = 1 - occ * 0.5, gr = 1 - occ * 0.58, b = 1 - occ * 0.7;
+    let r = 1 - occ * 0.42, gr = 1 - occ * 0.46, b = 1 - occ * 0.54;
     if (cream) { const t = ss(0.0, 0.3, (v.z - 0.54) / 0.14); r *= 1 + (cream[0] - 1) * t; gr *= 1 + (cream[1] - 1) * t; b *= 1 + (cream[2] - 1) * t; }
     const k = prev ? [prev.getX(i), prev.getY(i), prev.getZ(i)] : [1, 1, 1];
     col[i * 3] = r * k[0]; col[i * 3 + 1] = gr * k[1]; col[i * 3 + 2] = b * k[2];

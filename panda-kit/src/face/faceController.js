@@ -22,7 +22,7 @@ export function createFaceController(rig, getParts) {
       const lid = Math.min(1, Math.max(st['lid' + side], chan.blink));
       S.lid.rotation.x = lerp(-1.1, 0.5, lid) + 1.05 * THREE.MathUtils.smoothstep(lid, 0.88, 1);
       S.lid.parent.scale.z = lerp(1, 0.55, THREE.MathUtils.smoothstep(lid, 0.85, 1)); // closed lid flattens onto the patch
-      S.eyeSpin.visible = lid < 0.88; if (S.shine) S.shine.visible = lid < 0.6;
+      S.lid.visible = lid > 0.03; S.eyeSpin.visible = lid < 0.88; if (S.shine) S.shine.visible = lid < 0.6;
       const scl = st.eyeScale; rig['eye' + side].scale.setScalar(scl); S.lid.scale.setScalar(scl);
       const lx = THREE.MathUtils.clamp(st.lookX + chan.lookX + chan.saccX, -1, 1), ly = THREE.MathUtils.clamp(st.lookY + chan.lookY + chan.saccY, -1, 1);
       S.eyeSpin.rotation.set(-ly * 0.436, lx * 0.436, 0);
@@ -30,10 +30,10 @@ export function createFaceController(rig, getParts) {
       const bp = rig['brow' + side], h = st['brow' + side + 'h'], t = st['brow' + side + 't'], i = st['brow' + side + 'i'];
       bp.position.copy(bp.userData.base); bp.position.y += h * 0.055; bp.position.addScaledVector(bp.userData.normal, Math.abs(h) * 0.01);
       S.brow.rotation.z = s * (t * 0.5 - i * 0.45);
-      if (S.puff) { const pf = st.cheekPuff * 0.75; S.puff.scale.setScalar(Math.max(0.001, pf)); S.puff.position.copy(S.puffBase).addScaledVector(S.puffNormal, pf * 0.04); }
+      if (S.puff) { const pf = st.cheekPuff * 0.5; S.puff.scale.setScalar(Math.max(0.001, pf)); S.puff.position.copy(S.puffBase).addScaledVector(S.puffNormal, pf * 0.04); }
       const ear = rig['ear' + side]; if (ear) ear.rotation.z = s * st['ear' + side] * 0.35;
     }
-    if (parts.blush) { parts.blush.material.opacity = 0.34 * st.cheekBlush; parts.blush.visible = st.cheekBlush > 0.01; }
+    if (parts.blush) { parts.blush.material.opacity = 0.55 * st.cheekBlush; parts.blush.visible = st.cheekBlush > 0.01; }
     const nose = parts.nose; nose.rotation.z = Math.sin(st.noseWiggle * 40) * 0.06 * Math.min(1, st.noseWiggle); nose.scale.setScalar(1 + 0.05 * st.noseWiggle);
     parts.mouth.rebuild({ curve: st.mCurve, width: st.mWidth, open: Math.min(1, st.mOpen + chan.talk), offsetX: st.mOffsetX, pucker: st.mPucker });
   }

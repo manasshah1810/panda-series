@@ -9,7 +9,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
 const iter = process.argv[2] || '1';
 const sets = (process.argv[3] || 'turnaround').split('|').flatMap((x) => (x.startsWith('mid:') || x.startsWith('custom:') ? [x] : x.split(',')));
-const out = path.join(root, 'review', /^\d+$/.test(iter) ? `iteration-${iter}` : iter); fs.mkdirSync(out, { recursive: true });
+const out = path.join(root, 'review', /^\d/.test(iter) ? `iteration-${iter}` : iter); fs.mkdirSync(out, { recursive: true });
 
 const SETS = {
   turnaround: ['front', 'back', 'left', 'right', 'tq_front_left', 'tq_front_right', 'tq_back_left', 'top', 'low', 'high'],
