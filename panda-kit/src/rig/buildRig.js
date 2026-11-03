@@ -23,7 +23,7 @@ export function buildRig() {
   mk('chest', rig.spine, jw('chest'), jw('spine'));
   mk('neck', rig.chest, jw('neck'), jw('chest'));
   mk('head', rig.neck, jw('head'), jw('neck'));
-  mk('belly', rig.spine, W(...P.belly.center), jw('spine'));
+  mk('belly', rig.spine, W(0, P.torso.belly.y, 0), jw('spine'));
   for (const n of ['jaw', 'browL', 'browR', 'eyeL', 'eyeR', 'lidL', 'lidR']) {
     const g = new THREE.Group(); g.name = n; rig.head.add(g); rig[n] = g;
   }

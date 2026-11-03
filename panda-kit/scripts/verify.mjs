@@ -111,4 +111,27 @@ for (const f of files) {
   try { const o = (await import(pathToFileURL(f))).default; const pp = createPanda({ quality: 'medium' }); const b = snapshotTree(pp); const un = pp.equip(o); un(); const a = snapshotTree(pp); let d = 0; for (const [k, v] of b) if (a.get(k) !== v) d++; ok(d === 0, `episode outfit ${o.id}: validates, equips, unequips with no residue`); pp.dispose(); }
   catch (e) { ok(false, `episode outfit ${path.basename(f)}: ${e.message}`); }
 }
+// 8) form measurements (v1.1): proportions + silhouette gap, printed and asserted
+import { PROPORTIONS as PR } from '../src/config/defaults.js';
+{
+  const F = createPanda({ quality: 'high', pose: 'relaxedIdle' }); F.root.updateMatrixWorld(true);
+  const H = PR.totalHeight, headFrac = (PR.head.radii[1] * 2) / H;
+  const pawHalf = PR.arm.pawR * 1.05;
+  const armLen = PR.arm.upperLen + PR.arm.foreLen + Math.abs(PR.arm.pawY) + pawHalf, armFrac = armLen / H;
+  console.log(`MEASURE head height fraction ${headFrac.toFixed(3)}  arm length (shoulder to paw tip) ${armLen.toFixed(3)} = ${armFrac.toFixed(3)} of height`);
+  ok(headFrac >= 0.42 && headFrac <= 0.46, `head height fraction ${headFrac.toFixed(3)} in 0.42..0.46`);
+  ok(armFrac >= 0.34 && armFrac <= 0.38, `arm length fraction ${armFrac.toFixed(3)} in 0.34..0.38`);
+  F.root.traverse((o) => { if (o.isMesh) o.material.side = THREE.DoubleSide; });
+  const rc = new THREE.Raycaster(); const isArm = (o) => /^(upperArm|foreArm|paw)/.test(o.userData.pandaPart || o.name || '');
+  const gapAt = (y, dir) => { let best = Infinity; for (const z of [0, 0.05, 0.1, 0.15, 0.2, 0.25]) {
+    rc.set(new THREE.Vector3(0, y, z), new THREE.Vector3(dir, 0, 0)); const hits = rc.intersectObject(F.root, true);
+    const torso = hits.filter((h) => h.object.userData.pandaPart === 'torso'), arm = hits.filter((h) => isArm(h.object));
+    if (!torso.length || !arm.length) continue; best = Math.min(best, arm[0].distance - torso[torso.length - 1].distance);   // arm inner surface minus torso outer surface
+  } return best; };
+  const gaps = []; for (const y of [0.9, 0.8, 0.7]) for (const dir of [1, -1]) gaps.push([y, dir, gapAt(y, dir)]);
+  console.log('MEASURE arm-to-torso gap (m): ' + gaps.map(([y, d, g]) => `y${y}${d > 0 ? 'L' : 'R'}=${g.toFixed(3)}`).join(' '));
+  const waist = gaps.filter((g) => g[0] === 0.8 || g[0] === 0.7); ok(waist.every((g) => g[2] >= 0.04), `arm-to-torso gap at waist height >= 0.04 (min ${Math.min(...waist.map((g) => g[2])).toFixed(3)})`);
+  const bb = new THREE.Box3().setFromObject(F.root); console.log(`MEASURE total height ${(bb.max.y - bb.min.y).toFixed(3)} (ears included)`);
+  F.dispose();
+}
 process.exit(fail ? 1 : 0);

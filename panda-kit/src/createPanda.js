@@ -3,7 +3,8 @@ import { TIERS, PROPORTIONS as P } from './config/defaults.js';
 import { buildRig, snapshotRig, restoreRig } from './rig/buildRig.js';
 import { buildSockets, measure } from './rig/sockets.js';
 import { createMaterials } from './materials/index.js';
-import { buildTorso, buildBelly } from './geometry/body.js';
+import { buildTorso } from './geometry/body.js';
+import { buildNeck } from './geometry/neck.js';
 import { buildHeadShell } from './geometry/head.js';
 import { buildEar } from './geometry/ears.js';
 import { buildArmSegments, buildPaw, buildLeg, buildFoot } from './geometry/limbs.js';
@@ -23,8 +24,9 @@ import { GRIPS } from './poses/applyPose.js';
 import { makeFuzzShells } from './materials/fuzzShells.js';
 import { makeOutlineMaterial } from './materials/toon.js';
 
+const BELLY_Y = P.torso.belly.y;
 const BODY_KEYS = ['hips','spine','chest','neck','head','belly','tail','shoulderL','shoulderR','upperArmL','upperArmR','elbowL','elbowR','pawL','pawR','hipL','hipR','legL','legR','ankleL','ankleR','footL','footR'];
-const OUTLINE_PARTS = /^(torso|bellyMesh|head|muzzle|tailMesh|ear[LR]|upperArm|foreArm|paw[LR]|thumb|leg|foot|cheekPuff)/;
+const OUTLINE_PARTS = /^(torso|neck|head|muzzle|tailMesh|ear[LR]|upperArm|foreArm|paw[LR]|thumb|leg|foot|cheekPuff)/;
 
 /**
  * @typedef {Object} PandaOptions
@@ -36,7 +38,7 @@ const OUTLINE_PARTS = /^(torso|bellyMesh|head|muzzle|tailMesh|ear[LR]|upperArm|f
  * @property {number} [seed]
  */
 export function createPanda(options = {}) {
-  const opts = { quality: 'high', style: 'softClay', scale: 1, castShadow: true, receiveShadow: true, seed: 1, ...options };
+  const opts = { quality: 'high', style: 'softClay', scale: 1, castShadow: true, receiveShadow: true, seed: 1, pose: 'neutralStand', ...options };
   const rig = buildRig();
   const sockets = buildSockets(rig);
   const root = rig.root;
@@ -55,21 +57,21 @@ export function createPanda(options = {}) {
 
   function populate() {
     const tier = TIERS[tierName]; const mats = matsBundle.mats;
-    const spineY = P.joints.spine[1];
+    const spineY = BELLY_Y;
     if (tier.lite) { // lite: tail baked into the torso (no tail wag) to save a draw call
       const t = buildTorso(tier, mats, spineY), tl = buildTail(tier, mats);
       const merged = mergeParts([{ geo: t.geometry }, { geo: tl.geometry, matrix: M4([P.tail.center[0], P.tail.center[1] - spineY, P.tail.center[2]]) }], mats.torso, 'torso'); merged.userData.pandaPart = 'torso';
-      add(rig.spine, merged);
-    } else add(rig.spine, buildTorso(tier, mats, spineY));
-    { const b = buildBelly(tier, mats, spineY); b.position.set(0, 0, 0); add(rig.belly, b); }
+      add(rig.belly, merged);
+    } else add(rig.belly, buildTorso(tier, mats, spineY));
+    add(rig.neck, buildNeck(tier, mats));
     add(rig.head, buildHeadShell(tier, mats));
     for (const side of ['L', 'R']) {
       const ear = add(rig.head, buildEar(side, tier, mats)); ears[side] = ear; rig['ear' + side] = ear; rig['earFlop' + side] = ear.userData.flop;
       { const o = new THREE.Object3D(); o.name = 'earSocket' + side; ear.userData.flop.children[0].add(o); sockets[o.name] = o; }
       const arm = buildArmSegments(side, tier, mats);
       add(rig['upperArm' + side], arm.upper); add(rig['elbow' + side], arm.fore);
-      const paw = buildPaw(side, tier, mats); paw.group.position.y = -0.10; add(rig['paw' + side], paw.group); rig['pawMesh' + side] = paw.group; rig['thumb' + side] = paw.thumb;
-      const leg = buildLeg(side, tier, mats); add(rig['leg' + side], leg.leg);
+      const paw = buildPaw(side, tier, mats); paw.group.position.y = P.arm.pawY; add(rig['paw' + side], paw.group); rig['pawMesh' + side] = paw.group; rig['thumb' + side] = paw.thumb;
+      add(rig['leg' + side], buildLeg(side, tier, mats).leg);
       const foot = buildFoot(side, tier, mats); foot.position.set(0, -0.05, 0.08); add(rig['foot' + side], foot);
     }
     if (faceParts) faceParts.mouth.dispose();
@@ -87,9 +89,9 @@ export function createPanda(options = {}) {
     root.traverse((o) => {
       if (!o.isMesh || !o.material.vertexColors) return;
       const n = o.userData.pandaPart || '';
-      if (!/^(torso|bellyMesh|head|tailMesh|upperArm|foreArm|paw[LR]|thumb|leg|foot[LR])/.test(n)) return;
-      const kind = n === 'torso' ? 'torso' : n === 'bellyMesh' ? 'belly' : n === 'head' ? 'head' : n === 'tailMesh' ? 'tail' : 'limb';
-      bakeAO(o, kind, { rootInv, cream: kind === 'belly' ? cream : null });
+      if (!/^(torso|neck|head|tailMesh|upperArm|foreArm|paw[LR]|thumb|leg|foot[LR])/.test(n)) return;
+      const kind = n === 'torso' || n === 'neck' ? 'torso' : n === 'head' ? 'head' : n === 'tailMesh' ? 'tail' : 'limb';
+      bakeAO(o, kind, { rootInv, cream: n === 'torso' ? cream : null });
     });
     for (const k of BODY_KEYS) { const g = rig[k]; const c = cur[k]; g.position.fromArray(c.p); g.rotation.set(...c.r); g.scale.fromArray(c.s); }
     root.traverse((o) => o.isMesh && o.material.vertexColors && ensureColor(o));
@@ -148,5 +150,6 @@ export function createPanda(options = {}) {
   };
   // each built timeline is rendered once to 1 and back to 0 so every tween start value is captured from the rest state
   panda.anim = Object.fromEntries(Object.entries(ANIMS).filter(([, f]) => typeof f === 'function').map(([n, f]) => [n, (o) => { const tl = f(panda, o); tl.progress(1, true).progress(0, true); panda.face.apply(); return tl; }]));
+  if (opts.pose && opts.pose !== 'neutralStand') panda._applyPose(opts.pose);
   return panda;
 }

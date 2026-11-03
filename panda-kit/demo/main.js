@@ -20,7 +20,7 @@ controls.target.set(0, 1.0, 0); controls.enableDamping = true; controls.update()
 
 const lighting = createLighting(scene, renderer);
 const q = new URLSearchParams(location.search);
-const panda = createPanda({ quality: q.get('quality') || 'high', style: q.get('style') || 'softClay' });
+const panda = createPanda({ quality: q.get('quality') || 'high', style: q.get('style') || 'softClay', pose: q.get('pose') || 'relaxedIdle', receiveShadow: q.get('rs') !== '0', castShadow: q.get('rs') !== '0' });
 scene.add(panda.root);
 
 const state = { turntable: false, silhouette: false, debug: false, lighting: 'studio', quality: panda.quality, wireframe: false };
@@ -62,7 +62,7 @@ gui.add(worn, 'demoScarf').name('equip demoScarf').onChange((v) => (v ? panda.eq
 api.equipFromUrl = async (url) => { const mod = await import(/* @vite-ignore */ url); return panda.equip(mod.default); };
 const outfitParam = q.get('outfit'); if (outfitParam) for (const u of outfitParam.split(',')) await api.equipFromUrl(u);
 // ---- animation + pose review tools ----
-const anim = { name: 'wave', progress: 0, playing: false, pose: 'neutralStand', current: null };
+const anim = { name: 'wave', progress: 0, playing: false, pose: q.get('pose') || 'relaxedIdle', current: null };
 function buildAnim() { if (anim.current) anim.current.kill(); anim.current = panda.anim[anim.name](); anim.current.progress(anim.progress); api.currentTl = anim.current; }
 const ag = gui.addFolder('Animation');
 ag.add(anim, 'name', Object.keys(panda.anim)).onChange(() => { anim.progress = 0; buildAnim(); scrub.updateDisplay(); });
@@ -72,7 +72,7 @@ ag.add({ pause() { anim.current?.pause(); } }, 'pause');
 ag.add(anim, 'pose', panda.poseNames).onChange((n) => { anim.current?.kill(); anim.current = null; panda.pose(n, 0.8); });
 api.scrubAnim = (name, p) => { panda.root.rotation.y = 0; anim.name = name; anim.progress = p; buildAnim(); panda.face.apply(); return anim.current.duration(); };
 api.applyPose = (n) => { anim.current?.kill(); anim.current = null; panda._applyPose(n); };
-api.resetPose = () => { anim.current?.kill(); anim.current = null; panda._applyPose('neutralStand'); };
+api.resetPose = () => { anim.current?.kill(); anim.current = null; panda._applyPose(q.get('pose') || 'relaxedIdle'); };
 if (api.extendGui) api.extendGui(gui);
 
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });

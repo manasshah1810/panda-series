@@ -14,7 +14,7 @@ export function bakeAO(mesh, kind, { cream = null, rootInv = null } = {}) {
   mesh.updateWorldMatrix(true, false); M.copy(mesh.matrixWorld); if (rootInv) M.premultiply(rootInv);
   const head = [P.head.center, P.head.radii];
   const torsoC = [0, 0.9, 0], torsoR = [0.66, 0.6, 0.6];
-  const armsA = [[new THREE.Vector3(P.shoulder.x, P.shoulder.y, 0), new THREE.Vector3(P.shoulder.x + 0.09, 0.5, 0.02)], [new THREE.Vector3(-P.shoulder.x, P.shoulder.y, 0), new THREE.Vector3(-P.shoulder.x - 0.09, 0.5, 0.02)]];
+  const armsA = [[new THREE.Vector3(P.shoulder.x, P.shoulder.y, 0), new THREE.Vector3(P.shoulder.x + 0.3, 0.5, 0.04)], [new THREE.Vector3(-P.shoulder.x, P.shoulder.y, 0), new THREE.Vector3(-P.shoulder.x - 0.3, 0.5, 0.04)]];
   for (let i = 0; i < pos.count; i++) {
     v.fromBufferAttribute(pos, i).applyMatrix4(M);
     let occ = 0;

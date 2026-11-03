@@ -62,3 +62,20 @@ Fixes applied: gripPose(..., at), `expr()` excludes gaze, jiggles sized to never
 Rubric AFTER fixes: animation_quality 8 (judged from mid-frames + scrub tests; I cannot judge real-time feel from stills), rig_and_deformation 8 (13 poses: no gaps/pinching visible; arms crossed shows mild interpenetration, acceptable), consistency 8
 Decisions: building a timeline snaps the Panda to rest (documented). `turnAround` reads the root yaw at build time as its base (pass nothing, or build it when the root is at its intended heading). Animations reset to rest at t=0: to chain, place them sequentially in a master timeline.
 Open issues: draw calls / tris / material budgets (iteration 5); no cloth/outfit secondary motion yet; walkInPlace is only checked by scrub tests, not visually.
+
+---
+# v1.1 refinement (iterations 6–9)
+Baseline (v1.0, saved in `review/baseline-v1.0/`) honest scores: appeal 7.5, face 7.5, proportions 7, silhouette 6, colour/material 6, lighting 6.5, rig/deformation 6, consistency 6, chef 4, glasses 7, turtleneck 4 (≈6.5 overall, matching the outside review).
+
+## Iteration 6 — Form: limbs, neck, silhouette, belly, pose
+Screenshots: `review/iteration-6/` (sheet_turn.png, sheet_sil.png, sheet_poses.png, scale_150px.png; before/after `ab1.png`).
+**Changes (numbers in config/defaults.js):**
+- W1: arms are now `taperedTube`s with round caps on the joints (upper 0.19→0.165, forearm 0.165→0.135 wrist) plus a shoulder mass ellipsoid [0.215,0.2,0.2]; paw r 0.185. Shoulder x 0.53→0.56. Rest arm-out 0.34→0.50 rad, elbow bend 0.38→0.24 rad. Legs taper hip 0.235 → ankle 0.165 with an ankle puff.
+- W3: new `geometry/neck.js` — white jowl/neck ellipsoid [0.42,0.25,0.37] under the head (own mesh on the `neck` pivot, AO-baked).
+- W7: separate belly mesh REMOVED. Belly is now a smooth z-displacement of the lathe torso (bump 0.06, σ 0.2). The torso mesh hangs under the `belly` pivot (moved to the torso axis, y 0.72) so breathing/jiggle still scale it. Torso profile slimmed slightly (waist 0.62→0.59, chest 0.54→0.51) to open the arm gap. Belly cream tint is now ≈1–2 % warmer (#F6F2EA).
+- W6: ears 0.17→0.185 radius.
+- W10: `relaxedIdle` rewritten (hip tilt 2.3°, counter-tilted chest 2°, head tilt 3°, asymmetric arms/elbows, paw rotated, tail offset, weight on the right leg); the demo and every review shot now use it (`createPanda({pose})`, default still `neutralStand`, which outfit fitting uses).
+- Shadow acne (stripes on the tapered arms) fixed with larger shadow normalBias in `demo/lighting.js`.
+- verify.mjs now prints/asserts head fraction, arm fraction, arm-to-torso gap (raycast at waist heights) and tris.
+**Measured:** head height 0.460 of body height (0.42–0.46 ✓); arm shoulder→paw tip 0.724 m = 0.362 of height (0.34–0.38 ✓); arm-to-torso gap y0.8: 0.043/0.044, y0.7: 0.067/0.060 (≥0.04 ✓); tris high 24 900, medium 13 912, low 6 766; draw calls unchanged (34/33/24). Note: ear tips reach 2.2 m, body (head top) 2.0 m.
+**Honest critique:** much better; arms read as arms with shoulders and air. Still: the shoulder sphere reads slightly like a pauldron, a 29° arm splay is the price of the 0.04 gap with a pear torso, `armsCrossed`/`handsOnHips` poses were tuned for the old arms and read only roughly, and the front view is still a "teddy". Silhouette ≈7.5, proportions ≈7.5, rig ≈7.5.

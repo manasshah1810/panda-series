@@ -7,7 +7,7 @@ const arm = (sh, el, paw = [0, 0, 0]) => ({ shoulderL: sh, elbowL: el, pawL: paw
 
 export const POSES = {
   neutralStand: { expr: 'calmSmirk' },
-  relaxedIdle: { ...arm([0.05, 0, 0.2], [-0.3, 0, 0]), hips: [0, 0, 0.02], head: [0.03, 0.05, 0.02], expr: 'calmSmirk', pos: { hips: [0.02, -0.01, 0] } },
+  relaxedIdle: { shoulderL: [-0.16, 0, 0.5], elbowL: [-0.36, 0, 0], pawL: [0.1, 0, 0], shoulderR: [0.06, 0, -0.54], elbowR: [-0.2, 0, 0], pawR: [0, 0, 0.06], hips: [0, 0, 0.04], hipL: [0, 0, -0.045], hipR: [0, 0, -0.04], spine: [0.01, 0.03, -0.035], head: [0.03, 0.07, 0.05], tail: [0, 0.14, 0], expr: 'calmSmirk', pos: { hips: [0.025, -0.008, 0] } }, // weight on the Panda's right leg; geometry stays symmetric
   armsCrossed: { shoulderL: [-0.5, -1.1, 0.0], elbowL: [-1.5, 0, 0], shoulderR: [-0.3, 1.1, 0.0], elbowR: [-1.5, 0, 0], pawL: [0, 0, 0], pawR: [0, 0, 0], spine: [0.02, 0, 0], head: [0.04, 0, 0], expr: 'smug', grip: { L: 'fist', R: 'fist' } },
   handsOnHips: { ...arm([0.1, 0, 0.9], [0.0, 0, -1.85]), expr: 'proud', grip: { L: 'fist', R: 'fist' } },
   handsBehindBack: { ...arm([0.7, 0, 0.12], [-0.15, 0, 0]), spine: [-0.03, 0, 0], head: [-0.04, 0, 0], expr: 'calmSmirk' },

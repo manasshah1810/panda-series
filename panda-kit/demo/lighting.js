@@ -12,7 +12,7 @@ export const lightingNames = Object.keys(PRESETS);
 export function createLighting(scene, renderer) {
   const group = new THREE.Group(); scene.add(group);
   const key = new THREE.DirectionalLight();
-  key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02; key.shadow.radius = 5;
+  key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -0.0008; key.shadow.normalBias = 0.05; key.shadow.radius = 5;
   Object.assign(key.shadow.camera, { left: -2.5, right: 2.5, top: 3, bottom: -1, near: 0.5, far: 14 });
   const fill = new THREE.DirectionalLight(); const back = new THREE.DirectionalLight();
   const amb = new THREE.AmbientLight();
