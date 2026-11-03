@@ -1,2 +1,56 @@
-5:13:25 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+5:14:20 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
 CONSOLE warning THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+
+=== verify-kitchen (stage 4) ===
+PASS  budget high
+        52670 tris (max 60000), 34 draws (max 120), 1 shadow caster(s)
+PASS  budget medium
+        33646 tris (max 35000), 34 draws (max 80), 1 shadow caster(s)
+PASS  budget low
+        17822 tris (max 18000), 34 draws (max 50), 1 shadow caster(s)
+PASS  no NaN transforms / geometry
+        0 bad objects
+PASS  props sit on supports (no float/sink > 12 mm)
+        28 placements checked
+PASS  island clean zone 2.0 x 1.0 (needs >= 2.0 x 0.8)
+        empty
+PASS  no pure black / white in palette or flat materials
+        0 palette, 0 materials
+PASS  Panda turns 180 deg without touching furniture
+        min clearance 0.103 m (at 80 deg, vs backCounter); body bbox 1.992,2.539,1.376
+PASS  reach: paw centre within 0.25 of island top (two-handed hold at the island edge)
+        paws y 1.22/1.22 vs top 1 -> dy 0.22; paw x 0.79/0.79 (island edge 1.16)
+PASS  camera M1: inside no collider, in room, clear LOS
+        free; LOS clear; panda occlusion none
+PASS  camera M2: inside no collider, in room, clear LOS
+        free; LOS clear; panda occlusion none
+PASS  camera M3: inside no collider, in room, clear LOS
+        free; LOS clear; panda occlusion none
+PASS  camera M4: inside no collider, in room, clear LOS
+        free; LOS clear; panda occlusion none
+PASS  camera M5: inside no collider, in room, clear LOS
+        free; LOS clear; panda occlusion none
+PASS  camera M6: inside no collider, in room, clear LOS
+        free; LOS clear; panda occlusion none
+PASS  camera M7: inside no collider, in room, clear LOS
+        free; LOS clear; panda occlusion none
+PASS  camera M8: inside no collider, in room, clear LOS
+        free; LOS clear; panda occlusion none
+PASS  scrub-safety: setTime + setLightsOn frames identical forward/backward
+        max pixel diff 0
+PASS  dispose() frees geometries, materials, textures
+        geometries 35/35, materials 21/21, textures 7/7
+
+Panda separation: background luminance directly behind the head vs fur (p90 of head pixels); rule = bg <= 0.75 * fur
+PASS  M1: head px 17627, fur 0.751, bg 0.433, ratio 0.576
+PASS  M2: head px 33564, fur 0.751, bg 0.471, ratio 0.626
+info  M3: head px 23576, fur 0.766, bg 0.573, ratio 0.747
+PASS  M4: head px 32025, fur 0.768, bg 0.571, ratio 0.744
+info  M5: head px 28341, fur 0.631, bg 0.589, ratio 0.933
+info  M6: head px 0, fur 0, bg 0, ratio null
+info  M7: head px 35962, fur 0.752, bg 0.487, ratio 0.648
+PASS  M8: head px 57842, fur 0.769, bg 0.474, ratio 0.616
+
+Tiers: {"high":{"triangles":52670,"drawCalls":34,"shadowCasters":1,"quality":"high","materials":19},"medium":{"triangles":33646,"drawCalls":34,"shadowCasters":1,"quality":"medium","materials":19},"low":{"triangles":17822,"drawCalls":34,"shadowCasters":1,"quality":"low","materials":19}}
+
+ALL CHECKS PASSED

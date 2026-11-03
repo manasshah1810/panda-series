@@ -38,7 +38,7 @@ export function createKitchen({ quality = 'high', mood = 'morning', seed = 1, re
 
   function clearContent() {
     for (const g of Object.values(props)) { g.traverse((o) => { o.geometry?.dispose?.(); o.dispose?.(); }); g.clear(); g.position.set(0, 0, 0); g.rotation.set(0, 0, 0); }
-    if (state.content) { state.content.traverse((o) => { o.geometry?.dispose?.(); o.dispose?.(); }); root.remove(state.content); state.content = null; }
+    if (state.content) { state.content.traverse((o) => { o.geometry?.dispose?.(); o.dispose?.(); if (o.material?.isShaderMaterial) o.material.dispose(); }); root.remove(state.content); state.content = null; }
     state.mats?.dispose(); state.mats = null;
   }
   function build() {

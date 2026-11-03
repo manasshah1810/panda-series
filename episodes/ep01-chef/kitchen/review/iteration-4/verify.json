@@ -1,0 +1,182 @@
+{
+ "R": {
+  "res": [
+   {
+    "name": "budget high",
+    "pass": true,
+    "detail": "52670 tris (max 60000), 34 draws (max 120), 1 shadow caster(s)"
+   },
+   {
+    "name": "budget medium",
+    "pass": true,
+    "detail": "33646 tris (max 35000), 34 draws (max 80), 1 shadow caster(s)"
+   },
+   {
+    "name": "budget low",
+    "pass": true,
+    "detail": "17822 tris (max 18000), 34 draws (max 50), 1 shadow caster(s)"
+   },
+   {
+    "name": "no NaN transforms / geometry",
+    "pass": true,
+    "detail": "0 bad objects"
+   },
+   {
+    "name": "props sit on supports (no float/sink > 12 mm)",
+    "pass": true,
+    "detail": "28 placements checked"
+   },
+   {
+    "name": "island clean zone 2.0 x 1.0 (needs >= 2.0 x 0.8)",
+    "pass": true,
+    "detail": "empty"
+   },
+   {
+    "name": "no pure black / white in palette or flat materials",
+    "pass": true,
+    "detail": "0 palette, 0 materials"
+   },
+   {
+    "name": "Panda turns 180 deg without touching furniture",
+    "pass": true,
+    "detail": "min clearance 0.103 m (at 80 deg, vs backCounter); body bbox 1.992,2.539,1.376"
+   },
+   {
+    "name": "reach: paw centre within 0.25 of island top (two-handed hold at the island edge)",
+    "pass": true,
+    "detail": "paws y 1.22/1.22 vs top 1 -> dy 0.22; paw x 0.79/0.79 (island edge 1.16)"
+   },
+   {
+    "name": "camera M1: inside no collider, in room, clear LOS",
+    "pass": true,
+    "detail": "free; LOS clear; panda occlusion none"
+   },
+   {
+    "name": "camera M2: inside no collider, in room, clear LOS",
+    "pass": true,
+    "detail": "free; LOS clear; panda occlusion none"
+   },
+   {
+    "name": "camera M3: inside no collider, in room, clear LOS",
+    "pass": true,
+    "detail": "free; LOS clear; panda occlusion none"
+   },
+   {
+    "name": "camera M4: inside no collider, in room, clear LOS",
+    "pass": true,
+    "detail": "free; LOS clear; panda occlusion none"
+   },
+   {
+    "name": "camera M5: inside no collider, in room, clear LOS",
+    "pass": true,
+    "detail": "free; LOS clear; panda occlusion none"
+   },
+   {
+    "name": "camera M6: inside no collider, in room, clear LOS",
+    "pass": true,
+    "detail": "free; LOS clear; panda occlusion none"
+   },
+   {
+    "name": "camera M7: inside no collider, in room, clear LOS",
+    "pass": true,
+    "detail": "free; LOS clear; panda occlusion none"
+   },
+   {
+    "name": "camera M8: inside no collider, in room, clear LOS",
+    "pass": true,
+    "detail": "free; LOS clear; panda occlusion none"
+   },
+   {
+    "name": "scrub-safety: setTime + setLightsOn frames identical forward/backward",
+    "pass": true,
+    "detail": "max pixel diff 0"
+   },
+   {
+    "name": "dispose() frees geometries, materials, textures",
+    "pass": true,
+    "detail": "geometries 35/35, materials 21/21, textures 7/7"
+   }
+  ],
+  "tiers": {
+   "high": {
+    "triangles": 52670,
+    "drawCalls": 34,
+    "shadowCasters": 1,
+    "quality": "high",
+    "materials": 19
+   },
+   "medium": {
+    "triangles": 33646,
+    "drawCalls": 34,
+    "shadowCasters": 1,
+    "quality": "medium",
+    "materials": 19
+   },
+   "low": {
+    "triangles": 17822,
+    "drawCalls": 34,
+    "shadowCasters": 1,
+    "quality": "low",
+    "materials": 19
+   }
+  }
+ },
+ "sep": [
+  {
+   "name": "M1_establish_back",
+   "headPixels": 17627,
+   "furP90": 0.751,
+   "bgMean": 0.433,
+   "ratio": 0.576
+  },
+  {
+   "name": "M2_dolly_in_apron",
+   "headPixels": 33564,
+   "furP90": 0.751,
+   "bgMean": 0.471,
+   "ratio": 0.626
+  },
+  {
+   "name": "M3_flip_tilt_up",
+   "headPixels": 23576,
+   "furP90": 0.766,
+   "bgMean": 0.573,
+   "ratio": 0.747
+  },
+  {
+   "name": "M4_turn_front_low",
+   "headPixels": 32025,
+   "furP90": 0.768,
+   "bgMean": 0.571,
+   "ratio": 0.744
+  },
+  {
+   "name": "M5_throw_side",
+   "headPixels": 28341,
+   "furP90": 0.631,
+   "bgMean": 0.589,
+   "ratio": 0.933
+  },
+  {
+   "name": "M6_macro_board",
+   "headPixels": 0,
+   "furP90": 0,
+   "bgMean": 0,
+   "ratio": null
+  },
+  {
+   "name": "M7_title_lift",
+   "headPixels": 35962,
+   "furP90": 0.752,
+   "bgMean": 0.487,
+   "ratio": 0.648
+  },
+  {
+   "name": "M8_fourth_wall",
+   "headPixels": 57842,
+   "furP90": 0.769,
+   "bgMean": 0.474,
+   "ratio": 0.616
+  }
+ ]
+}
