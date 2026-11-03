@@ -5,7 +5,7 @@ export const CAMERA_MARKS = {
   M3_flip_tilt_up: { position: [0.3, 1.2, 3.0], lookAt: [0, 2.8, 0], fov: 36, note: 'Tilt up to follow the knife flip toward the hood and shelves' },
   M4_turn_front_low: { position: [0.2, 0.9, 3.4], lookAt: [0, 1.2, 0], fov: 32, note: 'Low front angle after the whip-orbit, seeing his face for the first time' },
   M5_throw_side: { position: [-3.2, 1.2, 0.6], lookAt: [1.5, 1.1, 1.0], fov: 34, note: 'Side angle from the left for the slow-motion throw across the frame to the island' },
-  M6_macro_board: { position: [1.2, 1.2, 2.0], lookAt: [1.7, 1.1, 1.1], fov: 28, note: 'Macro on the knife stuck in the board' },
+  M6_macro_board: { position: [1.0, 1.3, 2.5], lookAt: [1.7, 1.1, 1.1], fov: 28, note: 'Macro on the knife stuck in the board' },
   M7_title_lift: { position: [0, 1.4, 3.6], lookAt: [0.6, 1.9, 1.0], fov: 34, note: 'Hero framing for the title built around the knife and the lift' },
   M8_fourth_wall: { position: [0.2, 1.5, 3.0], lookAt: [0, 1.6, 0], fov: 30, note: 'Medium close-up where Panda looks into the lens' },
 };

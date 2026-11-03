@@ -34,7 +34,7 @@ export function createKitchen({ quality = 'high', mood = 'morning', seed = 1, re
   Object.values(props).forEach((g) => root.add(g));
   const lights = createLights(cfg, root);
   const state = { quality, mood, seed, time: 0, lightsT: 1, k: 1, env: null, mats: null, content: null, ctx: null, fx: null, tap: null };
-  const api = { root, anchors, props, cameraMarks: CAMERA_MARKS, config: cfg, lights, vignette: cfg.vignette, focusAnchor: anchors.pandaMark, colliders: [], placements: [], get quality() { return state.quality; }, get mood() { return state.mood; } };
+  const api = { root, anchors, props, cameraMarks: CAMERA_MARKS, config: cfg, lights, vignette: cfg.vignette, onLightsChange: null, get lightsLevel() { return state.k; }, focusAnchor: anchors.pandaMark, colliders: [], placements: [], get quality() { return state.quality; }, get mood() { return state.mood; } };
 
   function clearContent() {
     for (const g of Object.values(props)) { g.traverse((o) => { o.geometry?.dispose?.(); o.dispose?.(); }); g.clear(); g.position.set(0, 0, 0); g.rotation.set(0, 0, 0); }
@@ -59,7 +59,7 @@ export function createKitchen({ quality = 'high', mood = 'morning', seed = 1, re
     applyLights(); applyTime();
   }
   function applyLights() {
-    const k = (state.k = lightsCurve(state.lightsT)), m = MOODS[state.mood]; lights.apply(m, k);
+    const k = (state.k = lightsCurve(state.lightsT)), m = MOODS[state.mood]; lights.apply(m, k); api.onLightsChange?.(k);
     if (!state.mats) return;
     for (const mt of state.mats.list) if (mt.userData.envBase !== undefined) mt.envMapIntensity = mt.userData.envBase * k * m.env;
     for (const g of state.mats.glowMats) g.color.copy(g.userData.glowBase).multiplyScalar(k * m.glow);

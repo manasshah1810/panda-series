@@ -23,8 +23,11 @@ let panda = null, unequip = null, pandaOn = q.get('panda') !== '0';
 function ensurePanda() {
   if (panda) return panda;
   panda = createPanda({ quality: 'high', style: 'softClay', pose: 'neutralStand', receiveShadow: true, castShadow: true });
-  unequip = panda.equip(chefOutfit); scene.add(panda.root); placePanda(Math.PI); return panda;
+  unequip = panda.equip(chefOutfit); scene.add(panda.root); scaleRim(kitchen.lightsLevel); placePanda(Math.PI); return panda;
 }
+// The Panda's fur shader has a self-lit fresnel rim (uRim) that ignores scene lights: scale it with the kitchen's lights-on level so t=0 is truly dark.
+function scaleRim(k) { if (!panda) return; panda.root.traverse((o) => { const u = o.material?.userData?.uniforms; if (u?.uRim) { u._base ??= u.uRim.value; u.uRim.value = u._base * k; } }); }
+kitchen.onLightsChange = scaleRim;
 function placePanda(rotY, pos = kitchen.anchors.pandaMark.position) { panda.root.position.copy(pos); panda.root.rotation.y = rotY; }
 const lookAt = new THREE.Vector3();
 function setCam(position, target, fov) { camera.position.set(...position); lookAt.set(...target); camera.fov = fov; camera.aspect = renderer.domElement.width / renderer.domElement.height; camera.updateProjectionMatrix(); controls.target.copy(lookAt); controls.update(); }

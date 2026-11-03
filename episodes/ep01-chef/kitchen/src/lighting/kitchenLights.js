@@ -8,7 +8,7 @@ export function createLights(cfg, root) {
   const fill = new THREE.DirectionalLight('#FFF1DE', 0.7); fill.name = 'cameraFill'; fill.position.set(...L.fill.pos); fill.target.position.set(...L.fill.target);
   const rim = new THREE.DirectionalLight('#DCE7F4', 1.1); rim.name = 'rimLight'; rim.position.set(...L.rim.pos); rim.target.position.set(...L.rim.target);
   const hood = new THREE.SpotLight('#FFD9A8', 5, 4.5, 1.0, 1.0, 2); hood.name = 'hoodLight'; hood.position.set(H.x, H.bottomY - 0.06, zb + H.bottomD / 2); hood.target.position.set(H.x, 1.0, zb + H.bottomD / 2 - 0.05);
-  const strips = [0, 1].map((i) => { const p = new THREE.PointLight('#FFDDB0', 1.3, 2.6, 2); p.name = 'shelfStrip' + i; p.position.set(2.0, S.levels[i] - 0.12, zb + S.depth - 0.06); return p; });
+  const strips = [0, 1].map((i) => { const p = new THREE.PointLight('#FFDDB0', 0.5, 4, 2); p.name = 'shelfStrip' + i; p.position.set(2.0, S.levels[i] - 0.3, zb + S.depth + 0.25); return p; });
   const all = [sun, sun.target, hemi, fill, fill.target, rim, rim.target, hood, hood.target, ...strips]; all.forEach((o) => root.add(o));
   return {
     sun, hemi, fill, rim, hood, strips,
