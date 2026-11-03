@@ -1,0 +1,8 @@
+body { margin: 0; background: #0b0b14; color: #eee; font-family: system-ui, sans-serif; }
+main { max-width: 760px; margin: 0 auto; padding: 24px; }
+section { min-height: 260px; padding: 24px 0; border-bottom: 1px solid #222; }
+.box { width: 80px; height: 80px; background: #8b5cf6; border-radius: 12px; margin: 8px; display: grid; place-items: center; }
+.dot { width: 16px; height: 16px; border-radius: 50%; background: #f472b6; margin: 4px; }
+.row { display: flex; align-items: center; }
+button { padding: 6px 12px; }
+li { cursor: pointer; }
