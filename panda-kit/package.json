@@ -1,6 +1,6 @@
 {
   "name": "@panda-series/panda-kit",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Reusable procedural 3D Panda character (Three.js + GSAP) for the What If Panda Was... series",
   "type": "module",
   "main": "./src/index.js",

@@ -9,18 +9,18 @@
 ## Silhouette rules (iteration 1)
 - Huge round head (46% of height, 1.24 x 0.92 x 1.08 ellipsoid), two small round puck ears, pear torso, stubby tube limbs, planted wide feet.
 - No sharp or pointy shapes. Ears are thick pucks (z-radius 0.115) so they never read as spikes from the side.
-- No neck. Head overlaps the torso top.
+- Soft white neck/jowl ellipsoid (0.42/0.25/0.37) under the head so the head rests into the shoulders. Shoulders are black ellipsoid masses (0.215/0.2/0.2).
 - Arms are one continuous tube (capsule end-caps sit on the joints). **Never** put joint balls wider than the limb: they read as beads.
 - Tail sits flush against the torso back (z = -0.50), not floating.
-- Shoulders are narrow (x = 0.53) so the torso stays a pear, not a rectangle.
+- Shoulders at x = 0.56; arms hang out 0.50 rad (29°) at rest so there is ≥0.04 m of air between arm and torso at waist height.
 
 ## Proportions
 | Part | Value |
 |---|---|
-| Torso profile (y, r) | (0.30,0.40) (0.50,0.60) (0.70,0.66) (1.00,0.55) (1.25,0.42) (1.40,0.34), z-scale 0.9 |
+| Torso profile (y, r) | (0.30,0.40) (0.50,0.56) (0.70,0.59) (1.00,0.51) (1.25,0.42) (1.40,0.34), z-scale 0.9; belly = z-displacement bump 0.06, σ 0.2 at y 0.72 (no separate mesh) |
 | Head | centre (0,1.54,0), radii (0.62,0.46,0.54) |
-| Arm | upper 0.26, fore 0.24, paw offset 0.34, radii 0.165/0.155/0.17 |
-| Legs | radius 0.20, hips at x = ±0.30, feet radii (0.22,0.12,0.30), turned out 10° |
+| Arm | tapered tubes: upper 0.24 (r 0.19→0.165), fore 0.21 (0.165→0.135 wrist), paw r 0.185 at y -0.08; shoulder→paw tip 0.724 = 0.362 of height; rest elbow bend 0.24 rad |
+| Legs | tapered 0.38 long, hip r 0.235 → ankle 0.165 + ankle puff, hips at x = ±0.30, feet radii (0.22,0.12,0.30), turned out 10° |
 
 ## Rig
 `root > hips > spine > chest > neck > head`, arms off `chest`, legs/tail off `hips`, `belly` off `spine`. Lean the **spine** (it carries the torso mesh); `chest` only moves arms/head.
@@ -48,3 +48,10 @@
 - Secondary motion (belly jiggle, ear flop, tail wag, cheek wobble) = `fromTo` elastic tweens that start displaced and end AT REST, so they are deterministic and scrub-safe.
 - Timing: anticipation before big moves, follow-through after stops (ears, belly, tail settle later), eyes lead head lead body, heavy ease (power2/3.inOut, elastic.out(1,0.3) for jiggle).
 - Never put two tweens on the SAME property with overlapping time ranges: rendering order differs forward vs backward, so scrubbing breaks. `verify.mjs` catches this.
+
+## v1.1 surface + face recipe (iterations 6-8)
+- **Palette:** white `#F7F4EE` everywhere (belly ≈1-2 % warmer `#F6F2EA`), white shadow tint `#EAE5DC`, black `#1C1C21`, lifted floor `#2A2A31`, cool rim sheen `#8B93BC`, ear dish `#3C3C46`, inner mouth `#7A3340`, tongue `#C9606F`.
+- **Fur recipe:** MeshStandardMaterial patched with fresnel rim, warm lifted shadows, streak noise along Y (white ±2.5 %, black ±5 %) and low-frequency tint drift; baked vertex AO (warm, de-saturated). Fuzz = shells of low-res proxies (length 0.012; 6 shells head+torso, 4 on arms, high only; 2 shells head+torso on medium).
+- **Eye patches:** teardrop painted in the head shader (centre ±0.23, 1.575; half-length 0.225, half-width 0.165; slant 0.56 rad ≈ 32°; edge softness 5 %), masked off the muzzle. No geometry.
+- **Brows:** tapered ribbons following the forehead (length 0.105 half, width 0.024). **Mouth:** tube r 0.0135 with tapered ends. **Ears:** one ellipsoid (0.185/0.185/0.12) with a 0.065 displaced dish. **Cheek tufts:** 2 wedges per side merged into the head shell. **Blush:** soft DataTexture falloff.
+- **Default review pose:** `relaxedIdle` (hip tilt 2.3°, counter-tilted chest, head tilt 3°, asymmetric arms, weight on the right leg). `neutralStand` is the fitting pose.
