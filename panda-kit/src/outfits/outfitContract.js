@@ -2,7 +2,7 @@
  * OUTFIT CONTRACT (stable public API)
  *
  *   export default {
- *     id: 'chefOutfit',                 // unique string
+ *     id: 'myOutfit',                   // unique string
  *     version: '1.0.0',                 // string or number
  *     anchors: ['headTop', 'torsoWrap'],// sockets this outfit attaches to (must be real socket names)
  *     hides: ['tailMesh'],              // OPTIONAL: Panda part names to hide while equipped (restored on unequip)

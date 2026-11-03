@@ -13,6 +13,6 @@
     "build": "vite build demo",
     "verify": "node scripts/verify.mjs",
     "screenshots": "node scripts/screenshots.mjs",
-    "perf": "node scripts/perf.mjs"
+    "expr-diff": "node scripts/expr-diff.mjs review/iteration-8-expr 2.0", "perf": "node scripts/perf.mjs"
   }
 }

@@ -1,18 +1,25 @@
 // Episode-local helpers (kept out of the kit on purpose: only the public API is used).
 import * as THREE from 'three';
+import { fitRing, torsoSurfaceZ } from '@panda-series/panda-kit/outfits/fit.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+export { fitRing, torsoSurfaceZ };
 export function socketBaseY(panda, name) { panda.root.updateMatrixWorld(true); const v = new THREE.Vector3(); panda.sockets[name].getWorldPosition(v); return v.y / panda.options.scale; }
-/** Surface of revolution following the torso profile, between world heights y0..y1, local to a socket at world height yS. */
-export function shell(panda, yS, y0, y1, pad, steps = 18, seg = 40, closedTop = false) {
-  const m = panda.measure(), pr = m.torso.profile; const rad = (y) => { for (let i = 1; i < pr.length; i++) if (y <= pr[i][0]) { const t = (y - pr[i - 1][0]) / (pr[i][0] - pr[i - 1][0]); return pr[i - 1][1] + (pr[i][1] - pr[i - 1][1]) * t; } return pr[pr.length - 1][1]; };
-  const pts = []; for (let i = 0; i <= steps; i++) { const y = y0 + ((y1 - y0) * i) / steps; pts.push(new THREE.Vector2(rad(Math.max(y, pr[0][0])) + pad, y - yS)); }
-  const g = new THREE.LatheGeometry(pts, seg); g.scale(1, 1, m.torso.radii[2] / m.torso.radii[0]); return g;
+export const std = (color, rough = 0.95, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: rough, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, ...extra });
+/** Flat ribbon lofted along `pts` (Vector3[]) with per-point `normals`; half-width w(u), thickness t(u). Closed optional. */
+export function ribbon(pts, normals, w, t, closed = false, rs = 8) {
+  const n = pts.length, pos = [], idx = [], up = new THREE.Vector3();
+  for (let i = 0; i < n; i++) {
+    const u = i / (n - 1), tan = pts[Math.min(n - 1, i + 1)].clone().sub(pts[Math.max(0, i - 1)]).normalize(), nr = normals[i], side = new THREE.Vector3().crossVectors(tan, nr).normalize(); up.crossVectors(nr, side).normalize();
+    for (let j = 0; j < rs; j++) { const a = (j / rs) * Math.PI * 2, cw = Math.cos(a) * w(u), ct = Math.sin(a) * t(u); pos.push(...pts[i].clone().addScaledVector(side, cw).addScaledVector(nr, ct).toArray()); }
+  }
+  for (let i = 0; i < n - 1; i++) for (let j = 0; j < rs; j++) { const a = i * rs + j, b = i * rs + (j + 1) % rs, c = a + rs, d = b + rs; idx.push(a, b, c, b, d, c); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); return g;
 }
-
-/** Tube along a FRONT-facing arc (angles -span..span, 0 = +Z) hugging the torso at world height y. A full ring would collide with the arms. */
-export function arcTube(panda, fitRing, y, pad, span, radius, mat, yS, n = 28, zFn = null) {
-  const r = fitRing(y, pad), pts = [];
-  for (let i = 0; i <= n; i++) { const a = -span + (2 * span * i) / n; const x = Math.sin(a) * r.rx, z = Math.cos(a) * r.rz; pts.push(new THREE.Vector3(x, y - yS, zFn ? zFn(x, y, z) : z)); }
-  return new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), n * 2, radius, 8, false), mat);
+/** Normal of the torso surface at (x,y) by finite differences. */
+export function surfNormal(x, y) {
+  const e = 0.01, z = (a, b) => torsoSurfaceZ(a, b), dx = (z(x + e, y) - z(x - e, y)) / (2 * e), dy = (z(x, y + e) - z(x, y - e)) / (2 * e);
+  return new THREE.Vector3(-(isFinite(dx) ? dx : 0), -(isFinite(dy) ? dy : 0), 1).normalize();
 }
-/** Z of the belly bump surface (measure().belly ellipsoid) at x,y; -Infinity when outside it. */
-export function bellyZ(m, x, y) { const b = m.belly, nx = (x - b.center[0]) / b.radii[0], ny = (y - b.center[1]) / b.radii[1], t = 1 - nx * nx - ny * ny; return t > 0 ? b.center[2] + b.radii[2] * Math.sqrt(t) : -Infinity; }
+/** Point on the torso surface (+ offset along the normal), local to a socket at world height yS. */
+export function onSurface(x, y, off, yS) { const z = torsoSurfaceZ(x, y), n = surfNormal(x, y); return new THREE.Vector3(x, y, isFinite(z) ? z : 0).addScaledVector(n, off).sub(new THREE.Vector3(0, yS, 0)); }
+export const merge = (gs) => mergeGeometries(gs, false);
