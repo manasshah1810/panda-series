@@ -4,7 +4,7 @@ export const KITCHEN_CONFIG = {
   tiers: {
     high:   { tex: 1024, seg: 2, rad: 22, leaves: 72, pods: 36, dust: 400, shadow: 2048 },
     medium: { tex: 512,  seg: 1, rad: 14, leaves: 44, pods: 22, dust: 260, shadow: 1024 },
-    low:    { tex: 256,  seg: 0, rad: 8, leaves: 24, pods: 12, dust: 150, shadow: 512 },
+    low:    { tex: 256,  seg: 0, rad: 6, leaves: 16, pods: 8, dust: 150, shadow: 512 },
   },
   budgets: {
     triangles: { high: 60000, medium: 35000, low: 18000 },

@@ -4,17 +4,17 @@
    {
     "name": "budget high",
     "pass": true,
-    "detail": "54150 tris (max 60000), 32 draws (max 120), 1 shadow caster(s)"
+    "detail": "52662 tris (max 60000), 32 draws (max 120), 1 shadow caster(s)"
    },
    {
     "name": "budget medium",
-    "pass": false,
-    "detail": "42890 tris (max 35000), 32 draws (max 80), 1 shadow caster(s)"
+    "pass": true,
+    "detail": "33638 tris (max 35000), 32 draws (max 80), 1 shadow caster(s)"
    },
    {
     "name": "budget low",
     "pass": false,
-    "detail": "32394 tris (max 18000), 32 draws (max 50), 1 shadow caster(s)"
+    "detail": "21346 tris (max 18000), 32 draws (max 50), 1 shadow caster(s)"
    },
    {
     "name": "no NaN transforms / geometry",
@@ -99,21 +99,21 @@
   ],
   "tiers": {
    "high": {
-    "triangles": 54150,
+    "triangles": 52662,
     "drawCalls": 32,
     "shadowCasters": 1,
     "quality": "high",
     "materials": 19
    },
    "medium": {
-    "triangles": 42890,
+    "triangles": 33638,
     "drawCalls": 32,
     "shadowCasters": 1,
     "quality": "medium",
     "materials": 19
    },
    "low": {
-    "triangles": 32394,
+    "triangles": 21346,
     "drawCalls": 32,
     "shadowCasters": 1,
     "quality": "low",
