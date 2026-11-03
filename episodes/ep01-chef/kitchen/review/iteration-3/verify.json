@@ -13,8 +13,8 @@
    },
    {
     "name": "budget low",
-    "pass": false,
-    "detail": "21346 tris (max 18000), 32 draws (max 50), 1 shadow caster(s)"
+    "pass": true,
+    "detail": "17814 tris (max 18000), 32 draws (max 50), 1 shadow caster(s)"
    },
    {
     "name": "no NaN transforms / geometry",
@@ -113,7 +113,7 @@
     "materials": 19
    },
    "low": {
-    "triangles": 21346,
+    "triangles": 17814,
     "drawCalls": 32,
     "shadowCasters": 1,
     "quality": "low",
