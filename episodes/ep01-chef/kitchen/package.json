@@ -1,0 +1,15 @@
+{
+  "name": "@panda-series/ep01-kitchen",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Procedural marble-and-wood kitchen set for Episode 1 (Three.js + GSAP). No external assets.",
+  "main": "./src/index.js",
+  "exports": { ".": "./src/index.js" },
+  "peerDependencies": { "three": ">=0.187.0", "gsap": ">=3.12.0" },
+  "scripts": {
+    "dev": "node ../../../panda-kit/node_modules/vite/bin/vite.js demo",
+    "verify": "node scripts/verify-kitchen.mjs",
+    "screenshots": "node scripts/screenshots.mjs"
+  }
+}

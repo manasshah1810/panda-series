@@ -1,0 +1,125 @@
+{
+ "R": {
+  "res": [
+   {
+    "name": "budget high",
+    "pass": true,
+    "detail": "16918 tris (max 60000), 6 draws (max 120), 1 shadow caster(s)"
+   },
+   {
+    "name": "budget medium",
+    "pass": true,
+    "detail": "9158 tris (max 35000), 6 draws (max 80), 1 shadow caster(s)"
+   },
+   {
+    "name": "budget low",
+    "pass": true,
+    "detail": "8694 tris (max 18000), 6 draws (max 50), 1 shadow caster(s)"
+   },
+   {
+    "name": "no NaN transforms / geometry",
+    "pass": true,
+    "detail": "0 bad objects"
+   },
+   {
+    "name": "props sit on supports (no float/sink > 12 mm)",
+    "pass": true,
+    "detail": "1 placements checked"
+   },
+   {
+    "name": "island clean zone 2.0 x 1.0 (needs >= 2.0 x 0.8)",
+    "pass": true,
+    "detail": "empty"
+   },
+   {
+    "name": "no pure black / white in palette or flat materials",
+    "pass": true,
+    "detail": "0 palette, 0 materials"
+   },
+   {
+    "name": "Panda turns 180 deg without touching furniture",
+    "pass": true,
+    "detail": "min clearance 0.103 m (at 80 deg, vs backCounter); body bbox 1.992,2.539,1.376"
+   },
+   {
+    "name": "reach: paw centre within 0.25 of island top (two-handed hold at the island edge)",
+    "pass": true,
+    "detail": "paws y 1.22/1.22 vs top 1 -> dy 0.22; paw x 0.79/0.79 (island edge 1.16)"
+   },
+   {
+    "name": "camera M1: inside no collider, in room, clear LOS",
+    "pass": true,
+    "detail": "free; LOS clear; panda occlusion none"
+   },
+   {
+    "name": "camera M2: inside no collider, in room, clear LOS",
+    "pass": true,
+    "detail": "free; LOS clear; panda occlusion none"
+   },
+   {
+    "name": "camera M3: inside no collider, in room, clear LOS",
+    "pass": true,
+    "detail": "free; LOS clear; panda occlusion none"
+   },
+   {
+    "name": "camera M4: inside no collider, in room, clear LOS",
+    "pass": true,
+    "detail": "free; LOS clear; panda occlusion none"
+   },
+   {
+    "name": "camera M5: inside no collider, in room, clear LOS",
+    "pass": true,
+    "detail": "free; LOS clear; panda occlusion none"
+   },
+   {
+    "name": "camera M6: inside no collider, in room, clear LOS",
+    "pass": true,
+    "detail": "free; LOS clear; panda occlusion none"
+   },
+   {
+    "name": "camera M7: inside no collider, in room, clear LOS",
+    "pass": true,
+    "detail": "free; LOS clear; panda occlusion none"
+   },
+   {
+    "name": "camera M8: inside no collider, in room, clear LOS",
+    "pass": true,
+    "detail": "free; LOS clear; panda occlusion none"
+   },
+   {
+    "name": "scrub-safety: setTime + setLightsOn frames identical forward/backward",
+    "pass": true,
+    "detail": "max pixel diff 0"
+   },
+   {
+    "name": "dispose() frees geometries, materials, textures",
+    "pass": true,
+    "detail": "geometries 6/6, materials 4/4, textures 0/0"
+   }
+  ],
+  "tiers": {
+   "high": {
+    "triangles": 16918,
+    "drawCalls": 6,
+    "shadowCasters": 1,
+    "quality": "high",
+    "materials": 4
+   },
+   "medium": {
+    "triangles": 9158,
+    "drawCalls": 6,
+    "shadowCasters": 1,
+    "quality": "medium",
+    "materials": 4
+   },
+   "low": {
+    "triangles": 8694,
+    "drawCalls": 6,
+    "shadowCasters": 1,
+    "quality": "low",
+    "materials": 4
+   }
+  }
+ },
+ "sep": []
+}
