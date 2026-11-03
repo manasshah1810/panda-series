@@ -1,0 +1,8 @@
+{
+  "name": "@panda-series/ep01-chef",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Episode 1: What If Panda Was... a professional chef (scaffold + outfit proofs; the kitchen is NOT built yet)",
+  "dependencies": { "@panda-series/panda-kit": "*", "three": "0.187.0", "gsap": "^3.12.5" }
+}

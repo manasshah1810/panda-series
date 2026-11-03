@@ -1,0 +1,18 @@
+{
+  "name": "@panda-series/panda-kit",
+  "version": "1.0.0",
+  "description": "Reusable procedural 3D Panda character (Three.js + GSAP) for the What If Panda Was... series",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": { ".": "./src/index.js", "./outfits/*": "./src/outfits/*", "./props/*": "./src/props/*", "./package.json": "./package.json" },
+  "files": ["src"],
+  "peerDependencies": { "three": ">=0.160.0", "gsap": ">=3.12.0" },
+  "devDependencies": { "three": "0.187.0", "gsap": "^3.12.5", "vite": "^8.0.0", "lil-gui": "^0.21.0" },
+  "scripts": {
+    "dev": "vite demo",
+    "build": "vite build demo",
+    "verify": "node scripts/verify.mjs",
+    "screenshots": "node scripts/screenshots.mjs",
+    "perf": "node scripts/perf.mjs"
+  }
+}
