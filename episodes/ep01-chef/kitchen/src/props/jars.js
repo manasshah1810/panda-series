@@ -17,7 +17,7 @@ export function buildPots(ctx, specs) {
     B.add(M, lathe([[0.001, 0], [r * 0.92, 0], [r, 0.012], [r, h - 0.01], [r + 0.006, h], [r - 0.012, h], [r - 0.012, h - 0.014], [r - 0.006, 0.012], [0.001, 0.008]], rad), { p: [x, y, z] }, { s: 1.4, grain: 'y' }, 'pot');
     B.add(M, lathe([[0.001, h + 0.052], [r * 0.35, h + 0.046], [r * 0.9, h + 0.014], [r + 0.012, h + 0.004], [r + 0.012, h], [r * 0.9, h + 0.006], [0.001, h + 0.04]], rad), { p: [x, y, z] }, { s: 1.4 }, 'pot');
     B.add(m.brass, new THREE.SphereGeometry(0.017, 10, 8), { p: [x, y + h + 0.06, z] }, null, 'pot');
-    for (const s of [-1, 1]) B.add(m.brass, new THREE.TorusGeometry(0.025, 0.006, 6, 12, Math.PI), { p: [x + s * (r + 0.01), y + h - 0.045, z], r: [0, 0, s > 0 ? -Math.PI / 2 : Math.PI / 2] }, null, 'pot');
+    for (const s of [-1, 1]) B.add(m.brass, new THREE.TorusGeometry(0.025, 0.006, 4, 8, Math.PI), { p: [x + s * (r + 0.01), y + h - 0.045, z], r: [0, 0, s > 0 ? -Math.PI / 2 : Math.PI / 2] }, null, 'pot');
     ctx.placements.push({ name: 'pot', box: new THREE.Box3(new THREE.Vector3(x - r, y, z - r), new THREE.Vector3(x + r, y + h + 0.075, z + r)), supportY: y });
   }
 }

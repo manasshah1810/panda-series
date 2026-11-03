@@ -16,6 +16,6 @@ export function spatulaGeometry(rad, seg) {
 }
 export function whiskGeometry(rad) {
   const parts = [part(cyl(0.0095, 0.15, 8), { p: [0, -0.075, 0.03] }), part(new THREE.SphereGeometry(0.014, 8, 6), { p: [0, 0, 0.03] }), part(cyl(0.012, 0.025, 8), { p: [0, -0.16, 0.03] })];
-  for (let k = 0; k < 6; k++) parts.push(part(new THREE.TorusGeometry(0.036, 0.0024, 5, 14), { p: [0, -0.275, 0.03], r: [0, (k * Math.PI) / 6, 0], s: [1, 3.2, 1] }));
+  for (let k = 0; k < 6; k++) parts.push(part(new THREE.TorusGeometry(0.036, 0.0024, 3, Math.max(8, rad)), { p: [0, -0.275, 0.03], r: [0, (k * Math.PI) / 6, 0], s: [1, 3.2, 1] }));
   return fin(parts);
 }

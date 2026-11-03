@@ -13,8 +13,8 @@ export function buildBackCounter(ctx) {
     const x = C.x0 + dw * (i + 0.5), y = C.toeKick + 0.006 + dh / 2;
     B.add(m.wood, rbox(dw - 0.012, dh, 0.028, 0.01, seg), { p: [x, y, dz] }, { s: 1, grain: 'y', o: [rng(), rng()], flip: rng() < 0.5 });
     const hy = C.toeKick + dh - 0.1, hz = dz + 0.014 + 0.022, hx = x + (i % 2 ? -1 : 1) * (dw / 2 - 0.07);
-    B.add(m.brass, new THREE.CylinderGeometry(0.008, 0.008, 0.2, 8), { p: [hx, hy, hz], r: [0, 0, 0] });
-    for (const dy of [-0.07, 0.07]) B.add(m.brass, new THREE.CylinderGeometry(0.0055, 0.0055, 0.024, 8), { p: [hx, hy + dy, hz - 0.012], r: [Math.PI / 2, 0, 0] });
+    B.add(m.brass, new THREE.CylinderGeometry(0.008, 0.008, 0.2, Math.min(8, T.rad)), { p: [hx, hy, hz], r: [0, 0, 0] });
+    for (const dy of [-0.07, 0.07]) B.add(m.brass, new THREE.CylinderGeometry(0.0055, 0.0055, 0.024, 5), { p: [hx, hy + dy, hz - 0.012], r: [Math.PI / 2, 0, 0] });
   }
   // marble top with the sink cut-out
   const sx0 = S.x - S.w / 2, sx1 = S.x + S.w / 2, sz0 = zb + 0.12, sz1 = sz0 + S.d, uvm = () => ({ s: 1 / 2.2, o: [rng(), rng()], rot: Math.floor(rng() * 4), flip: rng() < 0.5 });

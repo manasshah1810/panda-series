@@ -19,7 +19,7 @@ export function buildHangers(ctx, group) {
   const tints = { steel: new THREE.Color(1, 1, 1), copper: tint(cfg.palette.copper), brass: tint(cfg.palette.brass), wood: new THREE.Color(1, 1, 1) };
   const kinds = { panS: [], panM: [], panL: [], ladle: [], whisk: [], spatula: [] }, rng = mulberry32(ctx.seed ?? 1);
   cfg.hangers.forEach(([x, kind, c], i) => { kinds[kind].push({ x, tint: tints[c], phase: rng() * 6.283, freq: 0.14 + rng() * 0.08, amp: 0.012 + rng() * 0.012, i });
-    B.add(m.brass, new THREE.TorusGeometry(0.0155, 0.0035, 6, 12), { p: [x, rail.y, rail.z], r: [0, Math.PI / 2, 0] }); });   // little ring on the rail for every item
+    B.add(m.brass, new THREE.TorusGeometry(0.0155, 0.0035, 4, Math.max(8, T.rad / 2)), { p: [x, rail.y, rail.z], r: [0, Math.PI / 2, 0] }); });   // little ring on the rail for every item
   const geos = { panS: panGeometry(SPECS.panS[0], SPECS.panS[1], T.rad), panM: panGeometry(SPECS.panM[0], SPECS.panM[1], T.rad), panL: panGeometry(SPECS.panL[0], SPECS.panL[1], T.rad), ladle: ladleGeometry(T.rad), whisk: whiskGeometry(T.rad), spatula: spatulaGeometry(T.rad) };
   const meshes = [], top = rail.y - 0.012, tmpM = new THREE.Matrix4(), tmpQ = new THREE.Quaternion(), tmpE = new THREE.Euler(), one = new THREE.Vector3(1, 1, 1);
   for (const [kind, list] of Object.entries(kinds)) {

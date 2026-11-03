@@ -2,9 +2,9 @@
 export const KITCHEN_CONFIG = {
   version: '1.0.0',
   tiers: {
-    high:   { tex: 1024, seg: 2, rad: 28, leaves: 72, pods: 36, dust: 400, shadow: 2048 },
-    medium: { tex: 512,  seg: 1, rad: 20, leaves: 44, pods: 22, dust: 260, shadow: 1024 },
-    low:    { tex: 256,  seg: 1, rad: 12, leaves: 24, pods: 12, dust: 150, shadow: 512 },
+    high:   { tex: 1024, seg: 2, rad: 22, leaves: 72, pods: 36, dust: 400, shadow: 2048 },
+    medium: { tex: 512,  seg: 1, rad: 14, leaves: 44, pods: 22, dust: 260, shadow: 1024 },
+    low:    { tex: 256,  seg: 0, rad: 8, leaves: 24, pods: 12, dust: 150, shadow: 512 },
   },
   budgets: {
     triangles: { high: 60000, medium: 35000, low: 18000 },
