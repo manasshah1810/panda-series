@@ -1,0 +1,24 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "next-app": {
+      "root": "apps/next-app",
+      "framework": "nextjs"
+    },
+    "vite-app": {
+      "root": "apps/vite-app",
+      "framework": "vite"
+    },
+    "panda-kit": {
+      "root": "panda-kit",
+      "framework": "vite",
+      "buildCommand": "vite build demo --base /panda-kit/",
+      "outputDirectory": "demo/dist"
+    }
+  },
+  "rewrites": [
+    { "source": "/panda-kit/(.*)", "destination": { "service": "panda-kit" } },
+    { "source": "/vite/(.*)", "destination": { "service": "vite-app" } },
+    { "source": "/(.*)", "destination": { "service": "next-app" } }
+  ]
+}
