@@ -9,6 +9,7 @@
   "scripts": {
     "dev:vite": "npm run dev -w vite-app",
     "dev:next": "npm run dev -w next-app",
-    "build": "npm run build -ws"
+    "build": "npm run build -w @panda-series/ep01-chef && rm -rf dist && cp -r episodes/ep01-chef/demo/dist dist",
+    "build:all": "npm run build -ws"
   }
 }

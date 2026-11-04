@@ -2,6 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "npm install --workspaces --include-workspace-root",
-  "buildCommand": "npm run build -w @panda-series/ep01-chef",
-  "outputDirectory": "episodes/ep01-chef/demo/dist"
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist"
 }
