@@ -46,11 +46,11 @@
   },
   "t4.4": {
    "mainPass": 93,
-   "withShadows": 149
+   "withShadows": 153
   },
   "t8": {
-   "mainPass": 89,
-   "withShadows": 156
+   "mainPass": 93,
+   "withShadows": 136
   }
  },
  "separation": {
@@ -67,15 +67,15 @@
    "ok": false
   },
   "t3.6": {
-   "pandaPx": 50648,
-   "brightFurMedian": 0.7770572549019606,
-   "bgMedianBehindPanda": 0.5641160784313726,
-   "ok": true
+   "pandaPx": 30696,
+   "brightFurMedian": 0.7255262745098039,
+   "bgMedianBehindPanda": 0.6352109803921567,
+   "ok": false
   },
   "t4.2": {
-   "pandaPx": 48434,
-   "brightFurMedian": 0.7879521568627451,
-   "bgMedianBehindPanda": 0.5593607843137255,
+   "pandaPx": 30405,
+   "brightFurMedian": 0.7325356862745098,
+   "bgMedianBehindPanda": 0.6042925490196078,
    "ok": true
   },
   "t5": {
@@ -85,9 +85,9 @@
    "ok": false
   },
   "t7": {
-   "pandaPx": 6781,
-   "brightFurMedian": 0.8773145098039214,
-   "bgMedianBehindPanda": 0.7015137254901961,
+   "pandaPx": 1764,
+   "brightFurMedian": 0.43899764705882355,
+   "bgMedianBehindPanda": 0.709073725490196,
    "ok": true
   }
  }
