@@ -42,6 +42,27 @@ export function marbleTexture(size, pal, { seed = 1, base = pal.marble_base, vei
   }), { aniso: 8 });
 }
 
+/** Soft cream-greige marble for the backsplash: thin warped main veins, finer secondary veins at a second scale, and low-contrast branches that only sprout near the main veins
+ *  (so it never turns into a crackle network). Veins are a few percent darker than the stone, not black lines. Integer lattice frequencies keep it seamless. */
+export function softMarbleTexture(size, pal, { seed = 21, base = pal.backsplash_marble_base, vein = pal.backsplash_vein, freq = 2, dir = [1, 2], contrast = 1 } = {}) {
+  const B = rawHex(base), V = rawHex(vein), warmCloud = mix(B, [B[0] * 1.02 > 255 ? 255 : B[0] * 1.02, B[1] * 1.01, B[2] * 0.97], 1), P = freq, TAU = Math.PI * 2;
+  return finish(paint(size, (u, v) => {
+    const x = u * P, y = v * P;
+    const w1 = fbm(x, y, P, P, 4, seed) - 0.5, w2 = fbm(x + 3.1, y + 1.7, P, P, 4, seed + 5) - 0.5, w3 = fbm(x * 2 + 9, y * 2 + 4, P * 2, P * 2, 3, seed + 9) - 0.5;
+    const d1 = Math.abs(Math.sin(0.5 * (TAU * (dir[0] * u + dir[1] * v) + 6.4 * w1 + 2.0 * w3)));                     // 0 on the main vein
+    const d2 = Math.abs(Math.sin(0.5 * (TAU * (dir[1] * 3 * u - dir[0] * 2 * v) + 8.0 * w2 + 3.0 * w3 + 1.3)));         // second, finer scale
+    const fade1 = sstep(0.25, 0.6, fbm(x * 2 + 5, y * 2 + 8, P * 2, P * 2, 2, seed + 21)), fade2 = sstep(0.3, 0.65, fbm(x * 3 + 2, y * 3 + 6, P * 3, P * 3, 2, seed + 40));
+    const main = (1 - sstep(0.0, 0.05, d1)) * (0.35 + 0.65 * fade1), mainHalo = (1 - sstep(0.0, 0.28, d1)) * 0.5 * fade1;
+    const fine = (1 - sstep(0.0, 0.04, d2)) * fade2 * 0.7;
+    const n = fbm(x * 5 + 1, y * 5 + 7, P * 5, P * 5, 3, seed + 7), ridge = 1 - Math.abs(2 * n - 1), branch = sstep(0.92, 0.99, ridge) * (1 - sstep(0.0, 0.34, d1)) * 0.5;
+    const cloud = fbm(x * 2, y * 2, P * 2, P * 2, 3, seed + 31), mott = fbm(x * 9, y * 9, P * 9, P * 9, 2, seed + 12);
+    let c = mix(B, warmCloud, cloud);
+    c = mix(c, [c[0] * 0.965, c[1] * 0.96, c[2] * 0.95], 0.3 * mainHalo + 0.25 * mott);
+    const vv = Math.min(1, (main * 0.7 + fine * 0.85 + branch * 0.8) * contrast);
+    return mix(c, V, vv);
+  }), { aniso: 8 });
+}
+
 /** Wood: grain runs along u (the texture's x axis). `endGrain` gives the cutting-board block pattern. */
 export function woodTexture(size, pal, { seed = 3, endGrain = false } = {}) {
   const L = rawHex(pal.wood_honey), D = rawHex(pal.wood_grain_dark), rng = mulberry32(seed + 99);

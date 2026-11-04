@@ -5,7 +5,13 @@ export function buildBackCounter(ctx) {
   const { cfg, B, m, T, rng } = ctx, C = cfg.backCounter, zb = cfg.room.backWallZ, zf = C.frontZ, S = C.sink, K = C.cooktop, topY = C.topY, sl = C.slab, seg = T.seg;
   const L = C.x1 - C.x0, carcassFront = zf - 0.04;
   // carcass + toe kick
-  B.add(m.woodDark, new THREE.BoxGeometry(L, topY - sl - C.toeKick, carcassFront - zb), { p: [(C.x0 + C.x1) / 2, C.toeKick + (topY - sl - C.toeKick) / 2, (zb + carcassFront) / 2] });
+  {
+    const ax0 = S.x - S.w / 2, ax1 = S.x + S.w / 2, az0 = zb + 0.12, az1 = az0 + S.d, y0 = C.toeKick, y1 = topY - sl, zc = carcassFront;
+    const part = (x0, x1, ya, yb, z0, z1) => B.add(m.woodDark, new THREE.BoxGeometry(x1 - x0, yb - ya, z1 - z0), { p: [(x0 + x1) / 2, (ya + yb) / 2, (z0 + z1) / 2] });
+    part(C.x0, ax0, y0, y1, zb, zc); part(ax1, C.x1, y0, y1, zb, zc);          // left / right of the sink
+    part(ax0, ax1, y0, S.floorY - 0.005, zb, zc);                              // below the basin
+    part(ax0, ax1, S.floorY - 0.005, y1, zb, az0); part(ax0, ax1, S.floorY - 0.005, y1, az1, zc);  // behind / in front of the basin
+  }
   B.add(m.woodDark, new THREE.BoxGeometry(L, C.toeKick, carcassFront - zb - 0.07), { p: [(C.x0 + C.x1) / 2, C.toeKick / 2, (zb + carcassFront - 0.07) / 2] });
   // doors
   const n = C.doors, dw = L / n, dh = topY - sl - C.toeKick - 0.012, dz = carcassFront + 0.014;
@@ -23,9 +29,9 @@ export function buildBackCounter(ctx) {
   // basin (steel walls + floor + drain)
   const bh = topY - sl - S.floorY + sl, t = 0.01, bw = sx1 - sx0, bd = sz1 - sz0, by = S.floorY + bh / 2 - sl / 2;
   const steelUV = { s: 1.2, grain: 'x' };
-  B.add(m.steel, new THREE.BoxGeometry(bw, t, bd), { p: [S.x, S.floorY, (sz0 + sz1) / 2] }, steelUV);
-  B.add(m.steel, new THREE.BoxGeometry(bw, bh, t), { p: [S.x, by, sz0 + t / 2] }, steelUV); B.add(m.steel, new THREE.BoxGeometry(bw, bh, t), { p: [S.x, by, sz1 - t / 2] }, steelUV);
-  B.add(m.steel, new THREE.BoxGeometry(t, bh, bd), { p: [sx0 + t / 2, by, (sz0 + sz1) / 2] }, steelUV); B.add(m.steel, new THREE.BoxGeometry(t, bh, bd), { p: [sx1 - t / 2, by, (sz0 + sz1) / 2] }, steelUV);
+  B.add(m.steelDark, new THREE.BoxGeometry(bw, t, bd), { p: [S.x, S.floorY, (sz0 + sz1) / 2] }, steelUV);
+  B.add(m.steelDark, new THREE.BoxGeometry(bw, bh, t), { p: [S.x, by, sz0 + t / 2] }, steelUV); B.add(m.steelDark, new THREE.BoxGeometry(bw, bh, t), { p: [S.x, by, sz1 - t / 2] }, steelUV);
+  B.add(m.steelDark, new THREE.BoxGeometry(t, bh, bd), { p: [sx0 + t / 2, by, (sz0 + sz1) / 2] }, steelUV); B.add(m.steelDark, new THREE.BoxGeometry(t, bh, bd), { p: [sx1 - t / 2, by, (sz0 + sz1) / 2] }, steelUV);
   B.add(m.ceramicDark, new THREE.CylinderGeometry(0.03, 0.03, 0.004, T.rad), { p: [S.x, S.floorY + 0.007, (sz0 + sz1) / 2] });
   ctx.world.basin = { x: S.x, y: S.floorY + 0.01, z: (sz0 + sz1) / 2, zTap: zb + 0.35 };
   // cooktop: dark glass plate, burners, low grates
@@ -33,16 +39,20 @@ export function buildBackCounter(ctx) {
   const cz = (zb + zf) / 2 - 0.08 + 0.0, plateZ = zb + 0.4 + 0.0; // plate centre z
   const pz = zb + 0.42, py = topY + 0.006;
   B.add(m.glass, rbox(K.w, 0.012, K.d, 0.005, seg), { p: [K.x, py, pz] });
-  const bpos = [[-0.2, -0.13], [0.2, -0.13], [-0.2, 0.13], [0.2, 0.13]];
+  const bpos = [[-0.2, -0.13], [0.2, -0.13], [-0.2, 0.13], [0.2, 0.13]], gl = py + 0.006;     // gl = top of the glass
   for (const [dx, dz] of bpos) {
-    B.add(m.steel, new THREE.CylinderGeometry(0.085, 0.085, 0.008, T.rad), { p: [K.x + dx, py + 0.01, pz + dz] }, { s: 1 });
-    B.add(m.steel, new THREE.CylinderGeometry(0.058, 0.062, 0.016, T.rad), { p: [K.x + dx, py + 0.016, pz + dz] }, { s: 1 });
-    B.add(m.glass, new THREE.CylinderGeometry(0.03, 0.03, 0.02, T.rad), { p: [K.x + dx, py + 0.02, pz + dz] });
+    B.add(m.steel, new THREE.TorusGeometry(0.074, 0.0085, 5, Math.max(10, T.rad)), { p: [K.x + dx, gl + 0.0085, pz + dz], r: [Math.PI / 2, 0, 0] }, { s: 1 });      // burner ring
+    B.add(m.steelDark, new THREE.CylinderGeometry(0.046, 0.05, 0.016, T.rad), { p: [K.x + dx, gl + 0.008, pz + dz] }, { s: 1 });                                        // burner cap
+    B.add(m.steel, new THREE.CylinderGeometry(0.014, 0.014, 0.022, 8), { p: [K.x + dx, gl + 0.014, pz + dz] }, { s: 1 });
   }
-  const gy = py + 0.036;
-  for (const dz of [-0.2, 0.0, 0.2]) B.add(m.steel, rbox(K.w - 0.04, 0.012, 0.016, 0.004, 1), { p: [K.x, gy, pz + dz] }, { s: 1, grain: 'x' });
-  for (const dx of [-0.38, -0.2, 0.0, 0.2, 0.38]) B.add(m.steel, rbox(0.014, 0.012, 0.42, 0.004, 1), { p: [K.x + dx, gy, pz] }, { s: 1, grain: 'z' });
-  for (const dx of [-0.38, 0.38]) for (const dz of [-0.2, 0.2]) B.add(m.steel, new THREE.CylinderGeometry(0.009, 0.009, 0.03, 8), { p: [K.x + dx, py + 0.021, pz + dz] });
+  const gy = gl + 0.04;
+  for (const dz of [-0.2, 0.0, 0.2]) B.add(m.steelDark, rbox(K.w - 0.04, 0.014, 0.02, 0.004, 1), { p: [K.x, gy, pz + dz] }, { s: 1, grain: 'x' });
+  for (const dx of [-0.4, -0.2, 0.0, 0.2, 0.4]) B.add(m.steelDark, rbox(0.02, 0.014, 0.44, 0.004, 1), { p: [K.x + dx, gy, pz] }, { s: 1, grain: 'z' });
+  for (const dx of [-0.4, 0.4]) for (const dz of [-0.2, 0.2]) B.add(m.steelDark, new THREE.CylinderGeometry(0.011, 0.011, 0.04, 8), { p: [K.x + dx, gl + 0.02, pz + dz] });
+  // sink rim: a thin raised steel frame round the basin opening so it reads from across the room
+  const rimT = 0.026, rimH = 0.007, rimY = topY + rimH / 2;
+  B.add(m.steel, new THREE.BoxGeometry(bw + 2 * rimT, rimH, rimT), { p: [S.x, rimY, sz0 - rimT / 2] }, steelUV); B.add(m.steel, new THREE.BoxGeometry(bw + 2 * rimT, rimH, rimT), { p: [S.x, rimY, sz1 + rimT / 2] }, steelUV);
+  B.add(m.steel, new THREE.BoxGeometry(rimT, rimH, bd), { p: [sx0 - rimT / 2, rimY, (sz0 + sz1) / 2] }, steelUV); B.add(m.steel, new THREE.BoxGeometry(rimT, rimH, bd), { p: [sx1 + rimT / 2, rimY, (sz0 + sz1) / 2] }, steelUV);
   ctx.world.cooktop = { x: K.x, y: gy + 0.006, z: pz };
   ctx.collide('backCounter', [C.x0, 0, zb, C.x1, topY, zf]);
 }

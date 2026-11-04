@@ -57,20 +57,7 @@ const R = await page.evaluate(async (stage) => {
 // ---- 11. Panda separation (luminance) done in Node-side loop via page calls ----
 let sep = [];
 if (stage >= 2) {
-  sep = await page.evaluate(() => {
-    const K = window.__kr, T = K.THREE, k = K.kitchen, out = [], lum = (d, i) => (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255;
-    k.setLightsOn(1); k.setTime(0);
-    for (const name of Object.keys(K.CAMERA_MARKS)) {
-      K.goMark(name); const P = K.panda; P.root.visible = true; const full = K.readPixels(); P.root.visible = false; const bg = K.readPixels();
-      // mask = pixels that differ between with/without Panda; head region = rows above the neck-base screen row
-      const neck = new T.Vector3(0, 1.28, 0).project(K.camera), rowNeck = Math.round((1 - (neck.y * 0.5 + 0.5)) * full.height), top = new T.Vector3(0, 2.05, 0).project(K.camera);
-      let n = 0, sumBg = 0; const furs = []; const d = full.data, b = bg.data;
-      for (let y = 0; y < Math.min(rowNeck, full.height); y++) for (let x = 0; x < full.width; x++) { const i = (y * full.width + x) * 4; if (Math.abs(d[i] - b[i]) + Math.abs(d[i + 1] - b[i + 1]) + Math.abs(d[i + 2] - b[i + 2]) > 30) { n++; sumBg += lum(b, i); furs.push(lum(d, i)); } }
-      furs.sort((a, c) => a - c); const fur = furs.length ? furs[Math.floor(furs.length * 0.9)] : 0, bgm = n ? sumBg / n : 0;
-      out.push({ name, headPixels: n, furP90: +fur.toFixed(3), bgMean: +bgm.toFixed(3), ratio: n ? +(bgm / fur).toFixed(3) : null });
-    }
-    K.goMark('M1_establish_back'); return out;
-  });
+  sep = await page.evaluate(() => window.__kr.separation());
 }
 const failed = []; console.log(`\n=== verify-kitchen (stage ${stage}) ===`);
 for (const r of R.res) { console.log(`${r.pass ? 'PASS' : 'FAIL'}  ${r.name}\n        ${r.detail}`); if (!r.pass) failed.push(r.name); }

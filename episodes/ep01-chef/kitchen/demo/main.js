@@ -47,6 +47,34 @@ const api = {
   setSize(w, h) { renderer.setPixelRatio(1); renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); },
   frame() { render(); return renderer.domElement.toDataURL('image/png'); },
   wireframe(on) { kitchen._state.mats.list.forEach((m) => { m.wireframe = on; }); },
+  /** Mean sRGB colour of the Panda's white fur vs the apron/hat cloth, sampled only where each is brightest (top half by luminance = "lit areas"). Mask pass: flat sentinel colours, kitchen hidden. */
+  furStats() {
+    if (!panda) return null; const w = renderer.domElement.width, h = renderer.domElement.height, full = api.readPixels().data;
+    const sent = { fur: [1, 0, 1], cloth: [0, 1, 1], other: [1, 1, 0] }, saved = [], mk = Object.fromEntries(Object.entries(sent).map(([k, v]) => [k, new THREE.MeshBasicMaterial({ color: new THREE.Color().setRGB(...v, THREE.SRGBColorSpace), toneMapped: false })]));
+    panda.root.traverse((o) => { if (!o.isMesh) return; saved.push([o, o.material, o.visible]); const m = Array.isArray(o.material) ? o.material[0] : o.material, hex = m.color?.getHexString();
+      if (m.isShaderMaterial) o.visible = false; else o.material = m.userData?.uniforms?.uRim && hex === 'f7f4ee' ? mk.fur : hex === 'cfdfea' ? mk.cloth : mk.other; });
+    const kv = kitchen.root.visible, bgs = scene.background; kitchen.root.visible = false; scene.background = null; renderer.setClearColor(0x000000, 1); const mask = api.readPixels().data;
+    for (const [o, m, v] of saved) { o.material = m; o.visible = v; } kitchen.root.visible = kv; scene.background = bgs; Object.values(mk).forEach((m) => m.dispose());
+    const cls = { fur: [], cloth: [] }, near = (a, b) => Math.abs(a - b) < 10;
+    for (let i = 0; i < mask.length; i += 4) { const r = mask[i], g = mask[i + 1], b = mask[i + 2]; const c = near(r, 255) && near(g, 0) && near(b, 255) ? 'fur' : near(r, 0) && near(g, 255) && near(b, 255) ? 'cloth' : null; if (c) cls[c].push(i); }
+    const lum = (i) => 0.2126 * full[i] + 0.7152 * full[i + 1] + 0.0722 * full[i + 2], out = {};
+    for (const [k, idx] of Object.entries(cls)) { idx.sort((a, b) => lum(b) - lum(a)); const top = idx.slice(0, Math.max(1, idx.length >> 1)); let r = 0, g = 0, b = 0, L = 0; for (const i of top) { r += full[i]; g += full[i + 1]; b += full[i + 2]; L += lum(i); } const n = top.length; out[k] = { px: idx.length, litLum: +(L / n).toFixed(1), rgb: [r, g, b].map((x) => +(x / n).toFixed(1)) }; }
+    return out;
+  },
+  separation() {
+    const K = window.__kr, T = K.THREE, k = K.kitchen, out = [], lum = (d, i) => (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255;
+    k.setLightsOn(1); k.setTime(0);
+    for (const name of Object.keys(K.CAMERA_MARKS)) {
+      K.goMark(name); const P = K.panda; P.root.visible = true; const full = K.readPixels(); P.root.visible = false; const bg = K.readPixels();
+      // mask = pixels that differ between with/without Panda; head region = rows above the neck-base screen row
+      const neck = new T.Vector3(0, 1.28, 0).project(K.camera), rowNeck = Math.round((1 - (neck.y * 0.5 + 0.5)) * full.height), top = new T.Vector3(0, 2.05, 0).project(K.camera);
+      let n = 0, sumBg = 0; const furs = []; const d = full.data, b = bg.data;
+      for (let y = 0; y < Math.min(rowNeck, full.height); y++) for (let x = 0; x < full.width; x++) { const i = (y * full.width + x) * 4; if (Math.abs(d[i] - b[i]) + Math.abs(d[i + 1] - b[i + 1]) + Math.abs(d[i + 2] - b[i + 2]) > 30) { n++; sumBg += lum(b, i); furs.push(lum(d, i)); } }
+      furs.sort((a, c) => a - c); const fur = furs.length ? furs[Math.floor(furs.length * 0.9)] : 0, bgm = n ? sumBg / n : 0;
+      out.push({ name, headPixels: n, furP90: +fur.toFixed(3), bgMean: +bgm.toFixed(3), ratio: n ? +(bgm / fur).toFixed(3) : null });
+    }
+    K.goMark('M1_establish_back'); return out;
+  },
   readPixels() { render(); const c = document.createElement('canvas'); c.width = renderer.domElement.width; c.height = renderer.domElement.height; const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(renderer.domElement, 0, 0); return x.getImageData(0, 0, c.width, c.height); },
 };
 window.__kr = api;

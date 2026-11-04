@@ -12,10 +12,10 @@ export const KITCHEN_CONFIG = {
     shadowCasters: 1,
   },
   palette: {
-    marble_base: '#ECE9E4', marble_vein_light: '#B9B6B2', marble_vein_dark: '#8E8C8A', backsplash_marble_base: '#DDD9D3',
+    marble_base: '#ECE9E4', marble_vein_light: '#B9B6B2', marble_vein_dark: '#8E8C8A', backsplash_marble_base: '#E6DFD2', backsplash_vein: '#B3A999',
     wood_honey: '#C89A62', wood_grain_dark: '#A87A45', brass: '#B58E4A', steel: '#C9CCCE', copper: '#B86F4A',
     floor_greige: '#B9AFA3', wall_plaster: '#D8D2C8', ceramic_white_warm: '#EFEAE0', ceramic_dark_vase: '#2E2B2A',
-    leaf_green: '#6E8B5B', light_warm: '#FFE9CC', cooktop_glass: '#2B2927', twig: '#6B5239', groove: '#7A6A58',
+    leaf_green: '#6E8B5B', light_warm: '#FFE9CC', cooktop_glass: '#1F1D1C', twig: '#6B5239', groove: '#7A6A58',
   },
   room: { backWallZ: -1.9, leftWallX: -4.6, rightWallX: 4.6, ceilingY: 5.0, frontZ: 7.0, wallThickness: 0.12 },
   window: { centerZ: 1.0, width: 2.4, sillY: 1.2, height: 2.2, frame: 0.06 },
@@ -23,9 +23,9 @@ export const KITCHEN_CONFIG = {
     x0: -3.8, x1: 3.8, topY: 1.0, depth: 0.8, frontZ: -1.1, slab: 0.04, toeKick: 0.1, doors: 12,
     sink: { x: 1.4, w: 0.62, d: 0.46, floorY: 0.76 },
     cooktop: { x: -1.8, w: 0.82, d: 0.54 },
-    hood: { x: -1.8, bottomY: 3.3, topY: 4.6, bottomW: 1.3, topW: 0.5, bottomD: 0.85, topD: 0.35 },
+    hood: { x: -1.8, bottomY: 3.3, topY: 4.05, bottomW: 1.3, topW: 0.5, bottomD: 0.85, topD: 0.36 },
   },
-  backsplash: { y0: 1.0, y1: 4.0, slabs: 5, gap: 0.005 },
+  backsplash: { y0: 1.0, y1: 4.0, slabs: 5, gap: 0.005, uvScale: 1 / 3.4 },
   rail: { y: 2.35, x0: -3.4, x1: 3.4, z: -1.78, radius: 0.014 },
   hangers: [   // x, kind, tint ; centre gap (|x| < 0.7) kept clear so the Panda's head reads against bare marble
     [-3.25, 'panL', 'copper'], [-2.85, 'ladle', 'steel'], [-2.45, 'panM', 'steel'], [-2.05, 'spatula', 'wood'], [-1.65, 'panS', 'copper'],
@@ -43,6 +43,9 @@ export const KITCHEN_CONFIG = {
     window: { pos: [9.0, 3.6, 1.4], target: [0, 0.6, 0.2] },
     rim: { pos: [-4.0, 3.6, -3.0], target: [0, 1.2, 0] },
     fill: { pos: [3.5, 2.6, 6.0], target: [0, 1.2, 0] },
+    // Panda integration lights (narrow spots with a distance cut-off, so the kitchen itself barely changes)
+    pandaFront: { pos: [1.3, 2.5, 4.6], target: [0, 1.2, 0], angle: 0.4, penumbra: 0.95, distance: 6.0 },
+    pandaRim: { pos: [-1.6, 3.1, -1.3], target: [0, 1.3, 0.4], angle: 0.45, penumbra: 1.0, distance: 4.4 },
   },
   vignette: 0.35,
 };

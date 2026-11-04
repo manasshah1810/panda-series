@@ -19,11 +19,12 @@ export function createMaterials(cfg, tier, env, stage = 4) {
     var list = [grey, floor, glow, sky];
   } else {
     const mar = createMarbles(pal, size), wd = createWoods(pal, size), st = createSteel(pal, size), bc = createBrassCopper(pal), cr = createCeramics(pal), rm = createRoomMaterials(pal, size);
+    const steelDark = st.clone(); steelDark.color.set('#7E858B'); steelDark.roughness = 0.42; steelDark.envMapIntensity = 0.5; steelDark.name = 'steelDark';
     const leaf = new THREE.MeshStandardMaterial({ color: pal.leaf_green, roughness: 0.65, side: THREE.DoubleSide, envMapIntensity: 0.3 }); leaf.name = 'leaf';
     const twig = new THREE.MeshStandardMaterial({ color: pal.twig, roughness: 0.8, envMapIntensity: 0.2 }); twig.name = 'twig';
     const water = new THREE.MeshPhysicalMaterial({ color: '#E4EEF2', roughness: 0.05, clearcoat: 1, envMapIntensity: 1.2 }); water.name = 'water'; water.userData.noCast = true;
     const frame = new THREE.MeshStandardMaterial({ color: pal.ceramic_white_warm, roughness: 0.5, envMapIntensity: 0.3 }); frame.name = 'windowFrame';
-    m = { marble: mar.island, marbleBack: mar.back, wood: wd.honey, woodDark: wd.dark, woodEnd: wd.end, steel: st, brass: bc.brass, copper: bc.copper, ceramic: cr.white, ceramicDark: cr.dark, glass: cr.glass, floor: rm.floor, plaster: rm.plaster, leaf, twig, frame, water, glow, sky };
+    m = { marble: mar.island, marbleBack: mar.back, wood: wd.honey, woodDark: wd.dark, woodEnd: wd.end, steel: st, steelDark, brass: bc.brass, copper: bc.copper, ceramic: cr.white, ceramicDark: cr.dark, glass: cr.glass, floor: rm.floor, plaster: rm.plaster, leaf, twig, frame, water, glow, sky };
     list = Object.values(m);
   }
   const textures = new Set();
