@@ -107,3 +107,26 @@ export function plasterTexture(size, pal, { seed = 13 } = {}) {
   return finish(paint(size, (u, v) => { const n = fbm(u * 5, v * 5, 5, 5, 4, seed); const k = 0.955 + 0.07 * n; return [B[0] * k, B[1] * k, B[2] * k]; }), { aniso: 4 });
 }
 export { hex };
+
+/** Bamboo butcher-block: long pale strips (running along u) with thin dark seams, faint node ticks and fibre noise. */
+export function bambooTexture(size, { seed = 31, base = '#D9C58E', dark = '#B79A5B' } = {}) {
+  const L = rawHex(base), D = rawHex(dark), N = 12;
+  return finish(paint(size, (u, v) => {
+    const si = Math.floor(v * N), lv = v * N - si, tone = hash(si, 0, seed), seam = sstep(0.04, 0.0, lv) + sstep(0.96, 1.0, lv);
+    const fibre = fbm(u * 3, v * 120, 3, 120, 2, seed + 5), node = Math.exp(-Math.pow(((u * 3 + hash(si, 1, seed) * 3) % 1 - 0.5) / 0.012, 2)) * 0.5;
+    let c = mix(L, D, 0.18 + 0.3 * tone + 0.25 * fibre);
+    c = mix(c, D, Math.min(1, node * 0.6 + seam * 0.55)); return c;
+  }), { aniso: 8 });
+}
+/** Handmade glazed tile: 6 x 4 tiles per texture, every tile its own tone, lighter glaze at the edge pooling, slightly uneven grout. */
+export function handTileTexture(size, { seed = 41, base = '#788C6E', grout = '#8C8A7B' } = {}) {
+  const B = rawHex(base), G = rawHex(grout), NX = 14, NY = 14;
+  return finish(paint(size, (u, v) => {
+    const ci = Math.floor(u * NX), cj = Math.floor(v * NY), lu = u * NX - ci, lv = v * NY - cj, tone = hash(ci, cj, seed);
+    const wob = 0.02 * (fbm(u * 24, v * 24, 24, 24, 2, seed) - 0.5);
+    const e = Math.min(lu, 1 - lu, lv, 1 - lv) + wob, edge = sstep(0.03, 0.008, e), pool = 0.12 * (1 - sstep(0.02, 0.14, e));
+    const cloud = fbm(u * 6, v * 6, 6, 6, 3, seed + 3);
+    let c = mix(B, [B[0] * 1.1, B[1] * 1.08, B[2] * 1.02], 0.5 * tone + 0.4 * cloud); c = mix(c, [c[0] + 18, c[1] + 18, c[2] + 14], pool);
+    return mix(c, G, edge);
+  }), { aniso: 8 });
+}

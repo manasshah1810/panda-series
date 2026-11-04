@@ -45,3 +45,13 @@ Known limitations / what a picky art director would reject:
 - Kitchen was only judged under software GL; no real fps measurement.
 - Low tier is blocky. Panda separation is only checked on the head region.
 Suggested next: knife prop and opening timeline using the anchors and marks; fur-rim control in panda-kit; a lighter marble with a Panda-side grade.
+
+## v1.1 WIP: "Panda's home" pass (art-direction change)
+The set read as a modern showroom. It now reads as a panda's own cosy kitchen:
+- bamboo butcher-block counter and island tops (procedural bamboo strips) replace white marble;
+- sage handmade tile backsplash replaces the marble slabs (darkened so the Panda still separates: bg/fur about 0.57-0.60);
+- terracotta clay range hood with a cast-iron lip and a duct to the ceiling;
+- bamboo steamer stack and cast-iron wok on the cooktop, clay teapot, basket of bamboo shoots, two red paper lanterns;
+- a bamboo grove outside the window (unlit, follows lights-on; the sky pane moved 0.6 m out so the stalks sit in front of it).
+Budgets held by tier-scaling the new props and thinning dish stacks on medium/low: 59.6k / 34.7k / 17.8k triangles, 39 draw calls, 1 shadow caster.
+Still open from the fix pass: steps 4-6 and 8 (window light shaft, plaster, floor, t=0 black, M5/M7/M8 framing, end-grain variation).

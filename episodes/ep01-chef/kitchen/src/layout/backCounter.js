@@ -41,7 +41,7 @@ export function buildBackCounter(ctx) {
   B.add(m.glass, rbox(K.w, 0.012, K.d, 0.005, seg), { p: [K.x, py, pz] });
   const bpos = [[-0.2, -0.13], [0.2, -0.13], [-0.2, 0.13], [0.2, 0.13]], gl = py + 0.006;     // gl = top of the glass
   for (const [dx, dz] of bpos) {
-    B.add(m.steel, new THREE.TorusGeometry(0.074, 0.0085, 5, Math.max(10, T.rad)), { p: [K.x + dx, gl + 0.0085, pz + dz], r: [Math.PI / 2, 0, 0] }, { s: 1 });      // burner ring
+    B.add(m.steel, new THREE.TorusGeometry(0.074, 0.0085, 4, Math.max(8, T.rad)), { p: [K.x + dx, gl + 0.0085, pz + dz], r: [Math.PI / 2, 0, 0] }, { s: 1 });      // burner ring
     B.add(m.steelDark, new THREE.CylinderGeometry(0.046, 0.05, 0.016, T.rad), { p: [K.x + dx, gl + 0.008, pz + dz] }, { s: 1 });                                        // burner cap
     B.add(m.steel, new THREE.CylinderGeometry(0.014, 0.014, 0.022, 8), { p: [K.x + dx, gl + 0.014, pz + dz] }, { s: 1 });
   }

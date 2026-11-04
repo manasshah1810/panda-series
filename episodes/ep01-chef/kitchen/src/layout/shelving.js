@@ -10,12 +10,12 @@ export function buildShelving(ctx) {
   }
   // brass rail + wall brackets
   const rl = rail.x1 - rail.x0;
-  B.add(m.brass, new THREE.CylinderGeometry(rail.radius, rail.radius, rl, 12), { p: [(rail.x0 + rail.x1) / 2, rail.y, rail.z], r: [0, 0, Math.PI / 2] });
+  B.add(m.brass, new THREE.CylinderGeometry(rail.radius, rail.radius, rl, Math.min(12, T.rad)), { p: [(rail.x0 + rail.x1) / 2, rail.y, rail.z], r: [0, 0, Math.PI / 2] });
   for (const x of [rail.x0, -1.7, 0, 1.7, rail.x1]) {
-    B.add(m.brass, new THREE.CylinderGeometry(0.008, 0.008, rail.z - zb, 8), { p: [x, rail.y, (rail.z + zb) / 2], r: [Math.PI / 2, 0, 0] });
-    B.add(m.brass, new THREE.CylinderGeometry(0.022, 0.022, 0.01, 12), { p: [x, rail.y, zb + 0.005], r: [Math.PI / 2, 0, 0] });
+    B.add(m.brass, new THREE.CylinderGeometry(0.008, 0.008, rail.z - zb, Math.min(8, T.rad)), { p: [x, rail.y, (rail.z + zb) / 2], r: [Math.PI / 2, 0, 0] });
+    B.add(m.brass, new THREE.CylinderGeometry(0.022, 0.022, 0.01, Math.min(12, T.rad)), { p: [x, rail.y, zb + 0.005], r: [Math.PI / 2, 0, 0] });
   }
-  B.add(m.brass, new THREE.SphereGeometry(rail.radius * 1.5, 10, 8), { p: [rail.x0 - 0.0, rail.y, rail.z] }); B.add(m.brass, new THREE.SphereGeometry(rail.radius * 1.5, 10, 8), { p: [rail.x1, rail.y, rail.z] });
+  B.add(m.brass, new THREE.SphereGeometry(rail.radius * 1.5, Math.min(10, T.rad), Math.min(8, T.rad)), { p: [rail.x0 - 0.0, rail.y, rail.z] }); B.add(m.brass, new THREE.SphereGeometry(rail.radius * 1.5, Math.min(10, T.rad), Math.min(8, T.rad)), { p: [rail.x1, rail.y, rail.z] });
   // tall unit
   const uw = U.x1 - U.x0, uh = U.height, uz = zb + U.depth / 2;
   B.add(m.woodDark, new THREE.BoxGeometry(uw, uh, U.depth - 0.03), { p: [(U.x0 + U.x1) / 2, uh / 2, zb + (U.depth - 0.03) / 2] });
