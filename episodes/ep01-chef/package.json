@@ -13,6 +13,6 @@
     "vite": "^8.0.0"
   },
   "scripts": {
-    "build": "vite build demo --base /ep01/"
+    "build": "vite build demo"
   }
 }

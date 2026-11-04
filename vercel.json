@@ -1,51 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "services": {
-    "next-app": {
-      "root": "apps/next-app",
-      "framework": "nextjs"
-    },
-    "vite-app": {
-      "root": "apps/vite-app",
-      "framework": "vite"
-    },
-    "panda-kit": {
-      "root": "panda-kit",
-      "framework": "vite",
-      "buildCommand": "vite build demo --base /panda-kit/",
-      "outputDirectory": "demo/dist"
-    },
-    "episode-opening": {
-      "root": "episodes/ep01-chef",
-      "framework": "vite",
-      "buildCommand": "vite build demo --base /ep01/",
-      "outputDirectory": "demo/dist"
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/ep01/(.*)",
-      "destination": {
-        "service": "episode-opening"
-      }
-    },
-    {
-      "source": "/panda-kit/(.*)",
-      "destination": {
-        "service": "panda-kit"
-      }
-    },
-    {
-      "source": "/vite/(.*)",
-      "destination": {
-        "service": "vite-app"
-      }
-    },
-    {
-      "source": "/(.*)",
-      "destination": {
-        "service": "next-app"
-      }
-    }
-  ]
+  "framework": null,
+  "installCommand": "npm install --workspaces --include-workspace-root",
+  "buildCommand": "npm run build -w @panda-series/ep01-chef",
+  "outputDirectory": "episodes/ep01-chef/demo/dist"
 }
