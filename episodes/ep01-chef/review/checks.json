@@ -41,15 +41,15 @@
  ],
  "drawCalls": {
   "t0": {
-   "mainPass": 93,
+   "mainPass": 87,
    "withShadows": 153
   },
   "t4.4": {
    "mainPass": 93,
-   "withShadows": 153
+   "withShadows": 156
   },
   "t8": {
-   "mainPass": 93,
+   "mainPass": 96,
    "withShadows": 136
   }
  },
@@ -73,21 +73,21 @@
    "ok": false
   },
   "t4.2": {
-   "pandaPx": 30405,
-   "brightFurMedian": 0.7325356862745098,
-   "bgMedianBehindPanda": 0.6042925490196078,
-   "ok": true
-  },
-  "t5": {
-   "pandaPx": 37267,
-   "brightFurMedian": 0.6604282352941178,
-   "bgMedianBehindPanda": 0.6596258823529412,
+   "pandaPx": 18260,
+   "brightFurMedian": 0.6913490196078431,
+   "bgMedianBehindPanda": 0.6011309803921568,
    "ok": false
   },
+  "t5": {
+   "pandaPx": 36565,
+   "brightFurMedian": 0.8473623529411765,
+   "bgMedianBehindPanda": 0.5741929411764706,
+   "ok": true
+  },
   "t7": {
-   "pandaPx": 1764,
-   "brightFurMedian": 0.43899764705882355,
-   "bgMedianBehindPanda": 0.709073725490196,
+   "pandaPx": 18711,
+   "brightFurMedian": 0.8733929411764706,
+   "bgMedianBehindPanda": 0.5520635294117646,
    "ok": true
   }
  }

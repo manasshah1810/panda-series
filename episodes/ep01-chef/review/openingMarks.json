@@ -1,25 +1,165 @@
 {
   "version": 1,
   "note": "Camera marks for the Episode-1 opening (beats B1-B6). M1..M5 are the kitchen marks (kitchen/src/cameraMarks.js) used as-is unless overridden here; M_swing is the mid-whip waypoint; M7 is re-tuned for the 3D title. `speed` scales the spline tangent at that knot (0 = stop, 1 = pass-through): it is never 0, so the camera never comes to rest between beats.",
-  "stick": [1.35, 1.1, 1.1],
+  "stick": [
+    1.35,
+    1.1,
+    1.1
+  ],
   "marks": {
-    "M1_establish_back": { "position": [0, 1.7, 4.6], "lookAt": [0, 1.2, -0.5], "fov": 36, "source": "kitchen" },
-    "M_swing":           { "position": [-2.3, 1.35, 3.5], "lookAt": [0, 1.25, 0], "fov": 36, "source": "opening", "note": "mid whip-orbit waypoint on Panda's right: his back is still to us while he spins" },
-    "M4_turn_front_low": { "position": [0.5, 1.15, 4.5], "lookAt": [0.2, 1.25, 0], "fov": 36, "source": "kitchen" },
-    "M5_throw_side":     { "position": [-3.2, 1.2, 0.6], "lookAt": [1.5, 1.1, 1.0], "fov": 34, "source": "kitchen" },
-    "M7_title_lift":     { "position": [2.0, 1.5, 4.3], "lookAt": [2.6, 1.3, 1.1], "fov": 42, "source": "opening", "note": "wide enough for the whole one-line title; the kitchen M7 was too tight for 25 letters" }
+    "M1_establish_back": {
+      "position": [
+        0,
+        1.7,
+        4.6
+      ],
+      "lookAt": [
+        0,
+        1.2,
+        -0.5
+      ],
+      "fov": 36,
+      "source": "kitchen"
+    },
+    "M_swing": {
+      "position": [
+        -2.3,
+        1.35,
+        3.5
+      ],
+      "lookAt": [
+        0,
+        1.25,
+        0
+      ],
+      "fov": 36,
+      "source": "opening",
+      "note": "mid whip-orbit waypoint on Panda's right: his back is still to us while he spins"
+    },
+    "M4_turn_front_low": {
+      "position": [
+        0.5,
+        1.15,
+        4.5
+      ],
+      "lookAt": [
+        0.2,
+        1.25,
+        0
+      ],
+      "fov": 36,
+      "source": "kitchen"
+    },
+    "M5_throw_side": {
+      "position": [
+        0.9,
+        1.35,
+        3.7
+      ],
+      "lookAt": [
+        1.3,
+        1.18,
+        1.1
+      ],
+      "fov": 32,
+      "source": "opening",
+      "note": "clear view of the board for the landing and wobble; the kitchen M5 sat behind Panda's shoulder"
+    },
+    "M7_title_lift": {
+      "position": [
+        2.0,
+        1.5,
+        4.3
+      ],
+      "lookAt": [
+        2.6,
+        1.3,
+        1.1
+      ],
+      "fov": 42,
+      "source": "opening",
+      "note": "wide enough for the whole one-line title; the kitchen M7 was too tight for 25 letters"
+    },
+    "M4b_throw_wide": {
+      "position": [
+        -0.3,
+        1.3,
+        5.2
+      ],
+      "lookAt": [
+        0.8,
+        1.2,
+        0.6
+      ],
+      "fov": 40,
+      "source": "opening",
+      "note": "keeps Panda and the board in one frame so the knife flight is readable"
+    }
   },
   "path": [
-    { "id": "k0", "t": 0.0, "mark": "M1_establish_back", "speed": 0.5 },
-    { "id": "k1", "t": 2.0, "mark": "M1_establish_back", "push": 0.04, "speed": 0.7 },
-    { "id": "k2", "t": 2.8, "mark": "M_swing", "speed": 1.0 },
-    { "id": "k3", "t": 3.6, "mark": "M4_turn_front_low", "speed": 0.6 },
-    { "id": "k4", "t": 4.2, "mark": "M4_turn_front_low", "push": 0.02, "speed": 0.5 },
-    { "id": "k5", "t": 5.0, "mark": "M5_throw_side", "speed": 0.5 },
-    { "id": "k6", "t": 6.0, "mark": "M5_throw_side", "push": 0.01, "speed": 0.55 },
-    { "id": "k7", "t": 8.0, "mark": "M7_title_lift", "speed": 0.4 }
+    {
+      "id": "k0",
+      "t": 0.0,
+      "mark": "M1_establish_back",
+      "speed": 0.5
+    },
+    {
+      "id": "k1",
+      "t": 2.0,
+      "mark": "M1_establish_back",
+      "push": 0.04,
+      "speed": 0.7
+    },
+    {
+      "id": "k2",
+      "t": 2.8,
+      "mark": "M_swing",
+      "speed": 1.0
+    },
+    {
+      "id": "k3",
+      "t": 3.6,
+      "mark": "M4_turn_front_low",
+      "speed": 0.6
+    },
+    {
+      "id": "k4",
+      "t": 4.2,
+      "mark": "M4b_throw_wide",
+      "speed": 0.5
+    },
+    {
+      "id": "k5",
+      "t": 5.0,
+      "mark": "M5_throw_side",
+      "speed": 0.5
+    },
+    {
+      "id": "k6",
+      "t": 6.0,
+      "mark": "M5_throw_side",
+      "push": 0.01,
+      "speed": 0.55
+    },
+    {
+      "id": "k7",
+      "t": 8.0,
+      "mark": "M7_title_lift",
+      "speed": 0.4
+    }
   ],
-  "tiltUp": { "deg": 6, "from": 6.0, "to": 8.0 },
-  "knifeTrack": { "from": 4.2, "to": 5.0, "peakWeight": 0.35 },
-  "portrait": { "maxAspect": 1.0, "note": "below this aspect the 3D title is hidden and the flat HTML title (built around the 3D knife stem) is shown" }
+  "tiltUp": {
+    "deg": 6,
+    "from": 6.0,
+    "to": 8.0
+  },
+  "knifeTrack": {
+    "from": 4.2,
+    "to": 5.0,
+    "peakWeight": 0.35
+  },
+  "portrait": {
+    "maxAspect": 1.0,
+    "note": "below this aspect the 3D title is hidden and the flat HTML title (built around the 3D knife stem) is shown"
+  }
 }
