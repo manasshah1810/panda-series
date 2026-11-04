@@ -23,3 +23,9 @@ const panda = createPanda({ quality: 'high' });
 scene.add(panda.root);
 panda.equip(chef);
 ```
+
+## Opening motion (B1-B6, 0-8 s)
+One master GSAP timeline, scrub-safe: `timeline/openingTimeline.js` (`createOpening`) applies camera, knife, title and kitchen time as pure functions of master time; the Panda is one reset timeline.
+- Files: `props/knife/` (prop + flight/wobble maths), `title/woodenTitle.js` (one merged mesh, shader-driven build, knife = stem of the f), `timeline/beats.js`, `review/openingMarks.json`, `demo/opening.html`.
+- Run: `node episodes/ep01-chef/scripts/frames.mjs after` (frames), `node episodes/ep01-chef/scripts/checks.mjs` (scrub test, landing, wobble, draw calls, separation -> `review/checks.json`).
+- Status: see the final report in the session; the four panda-kit bug fixes are NOT done yet.

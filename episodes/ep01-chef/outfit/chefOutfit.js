@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { fitRing, torsoSurfaceZ, std, ribbon, surfNormal, onSurface, merge, socketBaseY } from './_fit.js';
 
+/** Pocket centre on the apron (panda-local x, y). Moved to the right chest so the right paw can actually reach it. */
+export const POCKET = Object.freeze({ x: -0.2, y: 0.97, halfH: 0.07 });
+
 /** Chef outfit: pleated toque (headTop), apron + pocket + waist tie with back bow (torsoWrap), neckerchief (neckBase).
  *  Public kit API only. Everything follows the torso surface (torsoSurfaceZ) with a small normal offset, so nothing z-fights. */
 export default {
@@ -44,7 +47,7 @@ export default {
     const rr = new THREE.Shape(), W = 0.1, H = 0.07, R = 0.02; rr.moveTo(-W + R, -H); rr.lineTo(W - R, -H); rr.quadraticCurveTo(W, -H, W, -H + R); rr.lineTo(W, H - R); rr.quadraticCurveTo(W, H, W - R, H); rr.lineTo(-W + R, H); rr.quadraticCurveTo(-W, H, -W, H - R); rr.lineTo(-W, -H + R); rr.quadraticCurveTo(-W, -H, -W + R, -H);
     const pg = new THREE.ExtrudeGeometry(rr, { depth: 0.012, bevelEnabled: true, bevelSize: 0.004, bevelThickness: 0.004, bevelSegments: 2, curveSegments: 6 });
     const pocket = new THREE.Mesh(pg, pocketM); pocket.castShadow = true;
-    const px = 0.1, py = 0.62, pq = onSurface(px, py, OFF + 0.002, yS), pn = surfNormal(px, py); pocket.position.copy(pq); pocket.quaternion.setFromUnitVectors(V(0, 0, 1), pn); apron.add(pocket);
+    const px = POCKET.x, py = POCKET.y, pq = onSurface(px, py, OFF + 0.002, yS), pn = surfNormal(px, py); pocket.position.copy(pq); pocket.quaternion.setFromUnitVectors(V(0, 0, 1), pn); apron.add(pocket);
     const dashes = []; for (let i = 0; i < 26; i++) { const a = (i / 26) * Math.PI * 2, d = new THREE.CapsuleGeometry(0.0026, 0.01, 2, 4); d.rotateZ(a + Math.PI / 2); d.translate(Math.cos(a) * (W - 0.012) * 1.0, Math.sin(a) * (H - 0.012), 0.018); dashes.push(d); }
     const st = new THREE.Mesh(merge(dashes), stitchM); st.position.copy(pocket.position); st.quaternion.copy(pocket.quaternion); apron.add(st);
 
