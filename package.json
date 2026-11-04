@@ -1,7 +1,11 @@
 {
   "name": "panda-series",
   "private": true,
-  "workspaces": ["apps/*", "panda-kit"],
+  "workspaces": [
+    "apps/*",
+    "panda-kit",
+    "episodes/*"
+  ],
   "scripts": {
     "dev:vite": "npm run dev -w vite-app",
     "dev:next": "npm run dev -w next-app",

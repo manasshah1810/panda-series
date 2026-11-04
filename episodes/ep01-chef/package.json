@@ -4,5 +4,15 @@
   "private": true,
   "type": "module",
   "description": "Episode 1: What If Panda Was... a professional chef (scaffold + outfit proofs; the kitchen is NOT built yet)",
-  "dependencies": { "@panda-series/panda-kit": "*", "three": "0.187.0", "gsap": "^3.12.5" }
+  "dependencies": {
+    "@panda-series/panda-kit": "*",
+    "three": "0.187.0",
+    "gsap": "^3.12.5"
+  },
+  "devDependencies": {
+    "vite": "^8.0.0"
+  },
+  "scripts": {
+    "build": "vite build demo --base /ep01/"
+  }
 }

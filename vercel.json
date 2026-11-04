@@ -14,11 +14,38 @@
       "framework": "vite",
       "buildCommand": "vite build demo --base /panda-kit/",
       "outputDirectory": "demo/dist"
+    },
+    "ep01-opening": {
+      "root": "episodes/ep01-chef",
+      "framework": "vite",
+      "buildCommand": "vite build demo --base /ep01/",
+      "outputDirectory": "demo/dist"
     }
   },
   "rewrites": [
-    { "source": "/panda-kit/(.*)", "destination": { "service": "panda-kit" } },
-    { "source": "/vite/(.*)", "destination": { "service": "vite-app" } },
-    { "source": "/(.*)", "destination": { "service": "next-app" } }
+    {
+      "source": "/ep01/(.*)",
+      "destination": {
+        "service": "ep01-opening"
+      }
+    },
+    {
+      "source": "/panda-kit/(.*)",
+      "destination": {
+        "service": "panda-kit"
+      }
+    },
+    {
+      "source": "/vite/(.*)",
+      "destination": {
+        "service": "vite-app"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "next-app"
+      }
+    }
   ]
 }
