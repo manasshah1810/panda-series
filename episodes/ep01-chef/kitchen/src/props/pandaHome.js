@@ -36,7 +36,7 @@ export function buildPandaHome(ctx) {
   for (const [dx, dz, h, tilt] of [[-0.03, 0.0, 0.26, 0.08], [0.035, 0.02, 0.2, -0.12], [0.0, -0.035, 0.17, 0.2]]) B.add(m.ceramic, new THREE.ConeGeometry(0.036, h, 8), { p: [bx + dx, topY + 0.11 + h / 2 * 0.9, bz + dz], r: [tilt, 0, -tilt] }, null, 'basket');
   ctx.collide('teapot', [tx - 0.1, topY, tz - 0.1, tx + 0.2, topY + 0.21, tz + 0.1]); ctx.collide('basket', [bx - br, topY, bz - br, bx + br, topY + 0.38, bz + br]);
   // ---- red paper lanterns on cords from the ceiling
-  for (const [lx, ly, lz, s] of [[-3.35, 3.55, -1.05, 1], [-2.85, 3.95, -0.85, 0.8]]) {
+  for (const [lx, ly, lz, s] of [[-3.35, 3.55, -1.05, 1], [-2.85, 3.95, -0.85, 0.8]].slice(0, T.rad >= 14 ? 2 : 1)) {
     B.add(m.woodDark, new THREE.CylinderGeometry(0.004, 0.004, ceil - ly, 5), { p: [lx, (ceil + ly) / 2, lz] });
     B.add(m.lantern, new THREE.SphereGeometry(0.15 * s, rad, Math.max(5, rad >> 1)), { p: [lx, ly, lz], s: [1, 0.82, 1] }, null, 'lantern');
     for (const dy of [-1, 1]) B.add(m.brass, new THREE.CylinderGeometry(0.06 * s, 0.07 * s, 0.03, rad), { p: [lx, ly + dy * 0.124 * s, lz] });

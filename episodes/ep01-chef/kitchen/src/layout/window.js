@@ -10,7 +10,7 @@ export function buildWindow(ctx) {
   B.add(m.wood, rbox(0.26, 0.04, W.width + 0.1, 0.012, T.seg), { p: [R.rightWallX - 0.13 + 0.02, y0 - 0.02 + 0.0, zc] }, { s: 1, grain: 'z' }, 'sill');
   B.add(m.sky, new THREE.PlaneGeometry(W.width * 1.6, W.height * 1.6), { p: [R.rightWallX + 0.6, yc, zc], r: [0, -Math.PI / 2, 0] });
   // bamboo grove outside: tall stalks with node rings and leaf blades, in front of the sky pane (unlit; follows the lights-on glow so it is dark at t=0)
-  { const rad = Math.max(5, Math.min(10, T.rad)), stalks = [[0.25, 0.050, 0.0], [0.8, 0.045, 0.4], [1.3, 0.055, -0.3], [1.85, 0.045, 0.2]];
+  { const rad = Math.max(5, Math.min(10, T.rad)), stalks = [[0.25, 0.050, 0.0], [0.8, 0.045, 0.4], [1.3, 0.055, -0.3], [1.85, 0.045, 0.2]].slice(0, T.rad >= 14 ? 4 : 3);
     stalks.forEach(([dz, r, lean], i) => {
       const sx = R.rightWallX + 0.16 + (i % 2) * 0.12, sz = zc - W.width / 2 + dz, h = W.height + 0.7, y = y0 - 0.2;
       B.add(m.stalk, new THREE.CylinderGeometry(r, r * 1.08, h, rad), { p: [sx, y + h / 2, sz], r: [lean * 0.04, 0, 0] });

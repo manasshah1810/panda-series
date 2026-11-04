@@ -32,7 +32,9 @@ export function createMaterials(cfg, tier, env, stage = 4) {
     const iron = new THREE.MeshStandardMaterial({ color: '#34322F', roughness: 0.55, metalness: 0.5, envMapIntensity: 0.5 }); iron.name = 'castIron';
     const lantern = new THREE.MeshStandardMaterial({ color: '#C2412F', emissive: '#5A150C', emissiveIntensity: 0.7, roughness: 0.6, envMapIntensity: 0.2 }); lantern.name = 'lantern';
     const stalk = new THREE.MeshBasicMaterial({ color: '#5F8A4E', side: THREE.DoubleSide }); stalk.name = 'bambooOutside'; stalk.userData.noCast = true; stalk.userData.glowBase = stalk.color.clone();
-    m = { marble: bamboo, marbleBack: tile, bamboo, clay, iron, lantern, stalk, wood: wd.honey, woodDark: wd.dark, woodEnd: wd.end, steel: st, steelDark, brass: bc.brass, copper: bc.copper, ceramic: cr.white, ceramicDark: cr.dark, glass: cr.glass, floor: rm.floor, plaster: rm.plaster, leaf, twig, frame, water, glow, sky };
+    const dough = new THREE.MeshStandardMaterial({ color: '#EFE3C8', roughness: 0.55, envMapIntensity: 0.2 }); dough.name = 'dough';
+    const stalk3 = new THREE.MeshStandardMaterial({ color: '#7FA05A', roughness: 0.5, envMapIntensity: 0.3 }); stalk3.name = 'luckyStalk';
+    m = { dough, stalk3, marble: bamboo, marbleBack: tile, bamboo, clay, iron, lantern, stalk, wood: wd.honey, woodDark: wd.dark, woodEnd: wd.end, steel: st, steelDark, brass: bc.brass, copper: bc.copper, ceramic: cr.white, ceramicDark: cr.dark, glass: cr.glass, floor: rm.floor, plaster: rm.plaster, leaf, twig, frame, water, glow, sky };
     list = [...new Set([...Object.values(m), mar.island, mar.back])];
   }
   const textures = new Set();

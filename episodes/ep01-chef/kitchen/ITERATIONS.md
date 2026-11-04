@@ -55,3 +55,8 @@ The set read as a modern showroom. It now reads as a panda's own cosy kitchen:
 - a bamboo grove outside the window (unlit, follows lights-on; the sky pane moved 0.6 m out so the stalks sit in front of it).
 Budgets held by tier-scaling the new props and thinning dish stacks on medium/low: 59.6k / 34.7k / 17.8k triangles, 39 draw calls, 1 shadow caster.
 Still open from the fix pass: steps 4-6 and 8 (window light shaft, plaster, floor, t=0 black, M5/M7/M8 framing, end-grain variation).
+
+### Panda's home: small details
+Steamed momos on a plate with a chili-oil dip, a lucky-bamboo pot, a chopstick jar, tea cups on a bamboo trivet, a dried-chili string and a garlic braid (`src/props/pandaDetails.js`).
+Detail is tier-gated (low keeps only momos, plant and chopsticks). Triangles: 57.9k / 34.1k / 18.0k; dish lathes capped at 16 segments (5 on low) to pay for it.
+Critique: momos and garlic are small and read mainly in close-ups; the garlic reads grey in M1-style light.

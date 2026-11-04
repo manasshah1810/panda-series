@@ -6,13 +6,14 @@ import { buildJars, buildPots } from './jars.js';
 import { buildPlants } from './plants.js';
 import { buildTap } from './sink.js';
 import { buildPandaHome } from './pandaHome.js';
+import { buildPandaDetails } from './pandaDetails.js';
 
 /** Unique + instanced props. The board is always built; everything else from stage 3. Stylist rules: odd counts, height variety, nothing touching, island clean zone kept empty. */
 export function buildProps(ctx, content, props, stage) {
   buildCuttingBoard(ctx, props.cuttingBoard);
   if (stage < 3) return;
   const { cfg } = ctx, S = cfg.shelves, zb = cfg.room.backWallZ, top = (i) => S.levels[i] + S.thick / 2, sz = zb + 0.19;
-  buildPandaHome(ctx);
+  buildPandaHome(ctx); buildPandaDetails(ctx);
   buildHangers(ctx, props.hangingPans); buildTap(ctx, props.tap); buildPlants(ctx, props.plants);
   const bays = ctx.world.bays, z = bays[0].z;
   // island open shelf (3 bays x 2 levels)
