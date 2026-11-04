@@ -15,7 +15,7 @@
       "buildCommand": "vite build demo --base /panda-kit/",
       "outputDirectory": "demo/dist"
     },
-    "ep01-opening": {
+    "episode-opening": {
       "root": "episodes/ep01-chef",
       "framework": "vite",
       "buildCommand": "vite build demo --base /ep01/",
@@ -26,7 +26,7 @@
     {
       "source": "/ep01/(.*)",
       "destination": {
-        "service": "ep01-opening"
+        "service": "episode-opening"
       }
     },
     {
