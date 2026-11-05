@@ -73,20 +73,20 @@
  },
  "budget": {
   "newContentWithShadowsAndGlassPass": {
-   "calls": 46,
-   "triangles": 31674
+   "calls": 42,
+   "triangles": 31138
   },
   "newContentMainPass": {
-   "calls": 32,
-   "triangles": 20882
+   "calls": 28,
+   "triangles": 18874
   },
   "own": {
-   "triangles": 10842,
+   "triangles": 12314,
    "drawCalls": 20
   },
   "fullSceneAtLineup": {
-   "calls": 121,
-   "triangles": 163064
+   "calls": 117,
+   "triangles": 162528
   },
   "pass": true
  },

@@ -49,7 +49,7 @@ export function createRawIngredients({ quality = 'high', envMap = null } = {}) {
     root.position.set(rest[0], 0, rest[1]); root.rotation.y = yaw; root.visible = false;
     return { root, tilt, body, side, rest, yaw, entry: new THREE.Vector3(...entry), H, sq, settle, tumble, slide, delay, extra, height: size.y, size, p: 0, attached: false };
   }
-  const entryFor = (side, D = 1.3) => (side === 'L' ? [-0.82 * D, 0.22, -0.57 * D] : [0.82 * D, 0.22, -0.57 * D]);   // along the paw's arm axis, from the upper corner
+  const entryFor = (side, D = 1.3) => (side === 'L' ? [-0.5 * D, 0.22, -0.866 * D] : [0.5 * D, 0.22, -0.866 * D]);   // along the paw's arm axis (from the top edge, fanning to the flanks)
 
   // ============ 01. fresh bamboo shoot: segmented tapered cone, beveled flat cut base, overlapping tan sheaths, curved tip ============
   function buildBamboo() {
