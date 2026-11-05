@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import gsap from 'gsap';
 import { KNIFE } from './knife.js';
 
 /**
@@ -60,10 +61,21 @@ export function makeFlight(release, { stick = STICK_POINT, arc = 0.42 } = {}) {
   };
 }
 
+/**
+ * Pre-whip twang: the stuck knife is kicked +0.07 rad about Z and springs back with elastic.out(1.1, 0.3) over 0.55 s. This is the
+ * pure-function form of  gsap.fromTo(knife.rotation, { z: "+=0.07" }, { z: originalZ, duration: 0.55, ease: "elastic.out(1.1, 0.3)" })
+ * (a real fromTo would be state, and break scrubbing), so any seek order gives the same angle. Radians, 0 outside [t0, t0 + dur].
+ */
+export const SPRING = Object.freeze({ kick: 0.07, dur: 0.55, ease: 'elastic.out(1.1, 0.3)' });
+const _springEase = gsap.parseEase(SPRING.ease);
+export function springAngle(t, t0) { if (t < t0 || t >= t0 + SPRING.dur) return 0; return SPRING.kick * (1 - _springEase((t - t0) / SPRING.dur)); }
+
 /** Landed knife with the wobble applied as a ROTATION about the stick point (no translation of the pivot). */
-export function wobbledPose(t, tL, stick = STICK_POINT, out = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() }) {
+export function wobbledPose(t, tL, stick = STICK_POINT, out = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() }, springT0 = null) {
   const land = landingPose(stick), a = wobbleAngle(wobbleTau(t, tL)), r = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), a);
   out.position.copy(land.position).sub(land.stick).applyQuaternion(r).add(land.stick);
   out.quaternion.copy(r).multiply(land.quaternion);
+  const sp = springT0 == null ? 0 : springAngle(t, springT0);
+  if (sp) { const z = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), sp); out.position.sub(land.stick).applyQuaternion(z).add(land.stick); out.quaternion.premultiply(z); }
   return out;
 }

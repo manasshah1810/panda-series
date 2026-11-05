@@ -1,13 +1,13 @@
 // Headless verification for Beat 1 (hero tease): boot, anchor mount, scrub determinism, draw-call / triangle budget.
 import { start } from './_h.mjs'; import crypto from 'node:crypto'; import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
-const out = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../review'); const h = await start({ size: [480, 270], port: 5315, query: 'quality=high' });
+const out = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../review'); const h = await start({ size: [480, 270], port: 5315, query: 'quality=' + (process.env.Q || 'medium') });
 const R = {}, hash = async (t) => crypto.createHash('sha256').update(await h.page.evaluate((x) => window.__op.frame(x), t)).digest('hex').slice(0, 16);
 // 1. boot: no console errors / warnings (incl. shader compile errors) so far, and no GL error
 R.boot = await h.page.evaluate(() => { const gl = window.__op.renderer.getContext(); window.__op.seek(12); return { glError: gl.getError(), programs: window.__op.renderer.info.programs.length }; }); R.boot.consoleErrors = h.errors; R.boot.pass = R.boot.glError === 0 && h.errors.length === 0;
 // 2. the bowl is mounted on the kitchen anchor 'bowlPlacementPoint' (and its foot sits on the island top)
 R.anchor = await h.page.evaluate(() => { const o = window.__op, T = o.THREE, a = o.kitchen.anchors.bowlPlacementPoint.getWorldPosition(new T.Vector3()), b = o.ramen.group.getWorldPosition(new T.Vector3()); return { anchor: a.toArray(), bowl: b.toArray(), err: a.distanceTo(b), islandTopY: o.kitchen.config.island.topY, parentIsAnchor: o.ramen.group.parent === o.kitchen.anchors.bowlPlacementPoint }; }); R.anchor.pass = R.anchor.err < 1e-9 && R.anchor.parentIsAnchor && Math.abs(R.anchor.bowl[1] - R.anchor.islandTopY) < 1e-9;
 // 3. scrub determinism over the end of the opening + the whole hero beat: forward, backward and a shuffled jump pass must hash identically
-const END = await h.page.evaluate(() => window.__op.OPENING_END), steps = [...Array(35).keys()].map((i) => +(END - 0.4 + i * 0.1).toFixed(2)).concat([...Array(22).keys()].map((i) => +(END + 0.05 + i * 0.1).toFixed(2)));
+const END = await h.page.evaluate(() => window.__op.OPENING_END), steps = [...Array(35).keys()].map((i) => +(END - 0.4 + i * 0.1).toFixed(2)).concat([...Array(25).keys()].map((i) => +(END + 0.05 + i * 0.1).toFixed(2)));
 const fwd = {}, bwd = {}, jmp = {}; for (const t of steps) fwd[t] = await hash(t); for (const t of [...steps].reverse()) bwd[t] = await hash(t); for (const t of [...steps].sort((a, b) => ((a * 7.3) % 1) - ((b * 7.3) % 1))) jmp[t] = await hash(t);
 const bad = steps.filter((t) => fwd[t] !== bwd[t] || fwd[t] !== jmp[t]); const distinct = new Set(Object.values(fwd)).size;
 R.scrub = { frames: steps.length, distinctFrames: distinct, mismatches: bad, pass: bad.length === 0 && distinct > steps.length * 0.6 };

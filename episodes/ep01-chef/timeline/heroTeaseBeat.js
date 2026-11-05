@@ -4,14 +4,18 @@ import { CAMERA_MARKS } from '../kitchen/src/cameraMarks.js';
 
 /**
  * Beat 1 -- The Hero Tease. Whip from the Panda to the finished vegetarian ramen bowl, buttery orbit, dive into the steam.
- * Local timeline seconds: whip 0 .. 0.4 (power3.inOut), orbit 0.4 .. 1.6 (sine.inOut), plunge 1.6 .. 2.2 (power2.in).
+ * Local timeline seconds: whip 0 .. 0.45 (power3.inOut), orbit 0.45 .. 1.85 (sine.inOut), plunge 1.85 .. 2.45 (power2.in).
  * The timeline only tweens plain progress scalars (whip / orbit / plunge / wash ...). Camera, bowl, lights and overlay are then
  * set by `apply()`, a pure function of those scalars, so seeking forwards, backwards or randomly gives identical frames.
  */
-export const HERO_TIMES = Object.freeze({ whip: [0, 0.4], orbit: [0.4, 1.6], plunge: [1.6, 2.2], duration: 2.2, reveal: 0.14 });
+export const HERO_TIMES = Object.freeze({ whip: [0, 0.45], orbit: [0.45, 1.85], plunge: [1.85, 2.45], duration: 2.45, reveal: 0.14 });
 /** The marks M8..M11 were authored around this bowl position; they are shifted by (bowl world position - this). */
 export const HERO_FOCUS_AUTHORED = Object.freeze([1.35, 1.0, 1.1]);
 export const WASH_COLOR = '#F5F0E8';
+/** Whip lens punch (at whip time-progress 0.4 .. 0.6): fov +10 deg, roll -2.5 deg (clockwise), then the fov settles into M9's 32. */
+export const WHIP_PUNCH = Object.freeze({ from: 0.4, to: 0.6, fov: 10, roll: -2.5 * Math.PI / 180 });
+/** Light haze above the broth: the wash is 1 - exp(-k x), x = how far the camera has travelled into it (see washAt). */
+export const STEAM_K = 3.2;
 
 const V = (a) => new THREE.Vector3(...a);
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
@@ -59,18 +63,20 @@ export function createHeroTeaseTimeline({ cameraRig, ramenBowl, kitchenLighting,
   const dim = Object.values(kitchenLighting.lights ?? {}).flat().filter((l) => l && l.isLight && l !== spot).map((l) => ({ l, base: l.intensity }));
 
   // progress scalars (the ONLY state the timeline owns)
-  const s = { whip: 0, orbit: 0, plunge: 0, dim: 0, spot: 0, pop: 0, wash: 0 };
+  const s = { whip: 0, orbit: 0, plunge: 0, dim: 0, spot: 0, pop: 0, wash: 0 };   // (wash is DERIVED from the camera in apply(), never tweened)
+  const brothC = bowlWorld.clone(); brothC.y += ramenBowl.brothY ?? 0.062;       // centre of the broth surface
+  const d0 = P10.p.distanceTo(brothC), d1 = P11.p.distanceTo(brothC);              // camera distance at the start / end of the dive
+  const washAt = (p) => { const x = clamp01((d0 - p.distanceTo(brothC)) / (d0 - d1)); return (1 - Math.exp(-STEAM_K * x)) / (1 - Math.exp(-STEAM_K)); };
   const tl = gsap.timeline({ paused: true, defaults: { overwrite: false } });
   const ft = (k, to, [a, b], ease) => tl.fromTo(s, { [k]: 0 }, { [k]: to, duration: b - a, ease, immediateRender: false }, a);
   ft('whip', 1, T.whip, 'power3.inOut');                                    // 1. whip pan to the bowl
   ft('orbit', 1, T.orbit, 'sine.inOut');                                    // 2. slow, buttery orbit ...
-  ft('dim', 1, T.orbit, 'sine.inOut');                                      //    ... while the background dims 35% ...
+  ft('dim', 1, T.whip, 'power3.inOut');                                     //    background kitchen fills dim 35% during the move (and stay dim)
   ft('plunge', 1, T.plunge, 'power2.in');                                   // 3. dive into the steam ...
-  ft('wash', 1, T.plunge, 'power2.in');                                     //    ... and the screen washes to #F5F0E8
   tl.fromTo(s, { spot: 0 }, { spot: 0.35, duration: 0.4, ease: 'power2.out', immediateRender: false }, 0);
   tl.fromTo(s, { spot: 0.35 }, { spot: 1, duration: T.orbit[1] - T.orbit[0], ease: 'sine.inOut', immediateRender: false }, T.orbit[0]);   // ... the spotlight intensifies
   tl.fromTo(s, { pop: 0 }, { pop: 1, duration: 0.26, ease: 'back.out(1.5)', immediateRender: false }, T.reveal);   // bowl pops into frame as the whip sweeps past
-  tl.to({}, { duration: T.duration - tl.duration() }, tl.duration());   // pad to exactly 2.2 s
+  tl.to({}, { duration: T.duration - tl.duration() }, tl.duration());   // pad to exactly the beat duration
 
   const _p = new THREE.Vector3(), _l = new THREE.Vector3(), _up = new THREE.Vector3(), _u = new THREE.Vector3();
   const sharedState = { spotIntensity: 0, dimFactor: 1, wash: 0, pose: null };
@@ -88,7 +94,8 @@ export function createHeroTeaseTimeline({ cameraRig, ramenBowl, kitchenLighting,
       const u = s.whip;
       _p.set(q3(P0.p.x, P8.p.x, P9.p.x, u), q3(P0.p.y, P8.p.y, P9.p.y, u), q3(P0.p.z, P8.p.z, P9.p.z, u));
       _l.set(q3(P0.l.x, P8.l.x, P9.l.x, u), q3(P0.l.y, P8.l.y, P9.l.y, u), q3(P0.l.z, P8.l.z, P9.l.z, u));
-      fov = q3(P0.fov, P8.fov, P9.fov, u); roll = 0.11 * Math.sin(Math.PI * u); tilt = tilt0 * (1 - sm(0, 0.6, u));   // dutch-roll punch mid-whip; the opening's 6-degree tilt-up unwinds
+      const p = clamp01(localT / (T.whip[1] - T.whip[0])), w = clamp01((p - WHIP_PUNCH.from) / (WHIP_PUNCH.to - WHIP_PUNCH.from)), punch = Math.sin(Math.PI * w);   // window = whip TIME progress 0.4 .. 0.6
+      fov = P0.fov + (P9.fov - P0.fov) * sm(0.3, 1, u) + WHIP_PUNCH.fov * punch; roll = WHIP_PUNCH.roll * punch; tilt = tilt0 * (1 - sm(0, 0.6, u));   // dutch-roll punch mid-whip; the opening's 6-degree tilt-up unwinds
     }
     if (writeCamera) {
       _up.set(0, 1, 0); if (upBlend > 0) _up.multiplyScalar(1 - upBlend).addScaledVector(h10, upBlend).normalize();
@@ -102,6 +109,7 @@ export function createHeroTeaseTimeline({ cameraRig, ramenBowl, kitchenLighting,
     ramenBowl.setReveal?.(s.pop); ramenBowl.setTime(localT / T.duration);
 
     // ---- lights: absolute assignment from the captured bases (never accumulates)
+    s.wash = s.plunge > 0 ? washAt(_p) : 0;
     const dimF = 1 - 0.35 * s.dim; for (const d of dim) d.l.intensity = d.base * dimF;
     if (spot) spot.intensity = (spot.userData.peak ?? 1.1) * s.spot;
 

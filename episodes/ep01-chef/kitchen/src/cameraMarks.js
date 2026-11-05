@@ -11,7 +11,7 @@ export const CAMERA_MARKS = {
   // ---- Beat 1: the Hero Tease (whip from the Panda to the finished vegetarian ramen bowl, orbit, steam plunge) ----
   // Authored around a bowl focus of (1.35, 1.0, 1.1); heroTeaseBeat.js shifts M8..M11 by (bowlPlacementPoint - focus), so the bowl sits on the 'bowlPlacementPoint' anchor.
   M7_title_end: { position: [0, 1.4, 2.8], lookAt: [0, 1.1, 0], fov: 38, note: 'Panda close-up / title lockup: where the whip starts (the opening supplies its own live end pose)' },
-  M8_whip_transit: { position: [0.65, 1.35, 1.9], lookAt: [0.7, 1.15, 0.5], fov: 45, note: 'Mid-whip waypoint across the island' },
+  M8_whip_transit: { position: [0.65, 1.35, 1.9], lookAt: [0.7, 1.15, 0.5], fov: 48, note: 'Mid-whip waypoint across the island' },
   M9_hero_bowl_orbit_start: { position: [1.15, 1.38, 1.45], lookAt: [1.35, 1.1, 1.1], fov: 32, note: 'Whip lands on the steaming ramen bowl; slow orbit starts' },
   M10_hero_bowl_orbit_end: { position: [1.55, 1.32, 1.35], lookAt: [1.35, 1.1, 1.1], fov: 30, note: 'End of the buttery orbit; the dive begins' },
   M11_steam_plunge: { position: [1.35, 1.18, 1.1], lookAt: [1.35, 1.0, 1.1], fov: 65, note: 'Straight down into the steam plume (screen wipes to #F5F0E8)' },

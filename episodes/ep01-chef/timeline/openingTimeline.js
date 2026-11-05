@@ -5,7 +5,7 @@ import { gripPose } from '../../../panda-kit/src/poses/applyPose.js';
 import { torsoSurfaceZ } from '../outfit/_fit.js';
 import { POCKET } from '../outfit/chefOutfit.js';
 import { KNIFE } from '../props/knife/knife.js';
-import { STICK_POINT, makeFlight, wobbledPose, wobbleAngle, wobbleTau } from '../props/knife/knifeAnimations.js';
+import { STICK_POINT, SPRING, makeFlight, wobbledPose, wobbleAngle, wobbleTau } from '../props/knife/knifeAnimations.js';
 import { SHIFT, OPENING_END, DRAW, FLICK, B4_START, ellOf, tOfEll, T_LAND, T_RELEASE } from './beats.js';
 
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
@@ -189,7 +189,7 @@ export function createOpening({ scene, camera, kitchen, panda, knife, title, mar
       clipOn = a > 0.05;
     } else if (t < T_LAND) {
       const f = flight((ellOf(t) - FLICK.release) / (FLICK.land - FLICK.release)); pos.copy(f.position); q.copy(f.quaternion);
-    } else { const f = wobbledPose(t, T_LAND, stick); pos.copy(f.position); q.copy(f.quaternion); }
+    } else { const f = wobbledPose(t, T_LAND, stick, undefined, OPENING_END - SPRING.dur); pos.copy(f.position); q.copy(f.quaternion); }
     knife.position.copy(pos); knife.quaternion.copy(q); knife.updateMatrixWorld(true);
     if (clipOn) {
       const up = new THREE.Vector3(0, 1, 0).transformDirection(torso.matrixWorld), top = new THREE.Vector3(0, POCKET.y + POCKET.halfH - socketY(), 0).applyMatrix4(torso.matrixWorld);

@@ -10,6 +10,6 @@ else {
   await save('hero_bowl_45deg_orbit', [1.0]);
   await save('detail_shiitake', [1.0, { position: [f[0] + 0.05, f[1] + 0.2, f[2] + 0.1], lookAt: [f[0] + 0.045, f[1] + 0.08, f[2] + 0.035], up: [0, 0, -1], fov: 30 }]);
   await save('steam_dive_frame', [1.95]);
-  for (const t of [0, 0.15, 0.3, 0.4, 1.6, 2.2]) await save('seq_t' + t.toFixed(2), [t]);
+  for (const t of [0, 0.15, 0.3, 0.45, 1.85, 2.45]) await save('seq_t' + t.toFixed(2), [t]);
 }
 console.log(JSON.stringify(await h.page.evaluate(() => window.__op.info()))); await h.close();
