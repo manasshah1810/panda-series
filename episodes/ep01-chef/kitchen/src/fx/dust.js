@@ -10,9 +10,11 @@ export function createDust(count, shaft, seed, mulberry32) {
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(base, 3)); g.setAttribute('aPh', new THREE.BufferAttribute(ph, 4));
   const mat = new THREE.ShaderMaterial({
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-    uniforms: { uTime: { value: 0 }, uK: { value: 1 }, uPx: { value: 600 }, uSize: { value: 0.014 } },
-    vertexShader: `uniform float uTime,uPx,uSize; attribute vec4 aPh; varying float vA;
-      void main(){ vec3 p=position; float t=uTime*0.35*aPh.w; p+=vec3(sin(t+aPh.x),sin(t*0.8+aPh.y)*0.7,cos(t*1.1+aPh.z))*0.18; vec4 mv=modelViewMatrix*vec4(p,1.);
+    uniforms: { uTime: { value: 0 }, uK: { value: 1 }, uPx: { value: 600 }, uSize: { value: 0.014 }, uPush: { value: new THREE.Vector3(0, -9, 0) }, uAmp: { value: 0 } },
+    vertexShader: `uniform float uTime,uPx,uSize,uAmp; uniform vec3 uPush; attribute vec4 aPh; varying float vA;
+      void main(){ vec3 p=position; float t=uTime*0.35*aPh.w; p+=vec3(sin(t+aPh.x),sin(t*0.8+aPh.y)*0.7,cos(t*1.1+aPh.z))*0.18;
+        vec3 dd=p-uPush; float fo=exp(-dot(dd,dd)*0.9)*uAmp; p+=normalize(dd+vec3(0.0001))*fo*0.9+vec3(0.0,fo*0.35,0.0);   // air displaced by Panda
+        vec4 mv=modelViewMatrix*vec4(p,1.);
         vA=0.55+0.45*sin(uTime*1.3*aPh.w+aPh.x*3.0); gl_PointSize=max(1.5,uSize*uPx/-mv.z); gl_Position=projectionMatrix*mv; }`,
     fragmentShader: `uniform float uK; varying float vA; void main(){ vec2 d=gl_PointCoord-0.5; float a=smoothstep(0.5,0.0,length(d)); gl_FragColor=vec4(vec3(1.0,0.9,0.72)*a*vA*0.55*uK,1.0); }`,
   });

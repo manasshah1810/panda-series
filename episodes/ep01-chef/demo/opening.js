@@ -22,7 +22,9 @@ const panda = createPanda({ quality: q.get('quality') || 'medium', style: 'softC
 panda.equip(chefOutfit); scene.add(panda.root);
 for (const l of kitchen.lights?.strips ?? []) l.visible = false;   // two faint under-shelf points: invisible at this framing, but they cost every pixel
 // small props (dishes, utensils, pods) barely register in the shadow map: skip them in the shadow pass (fewer draw calls)
-{ const bb = new THREE.Box3(), sz = new THREE.Vector3(); kitchen.root.traverse((o) => { if (!o.isMesh || !o.castShadow) return; if (o.isInstancedMesh) { o.castShadow = false; return; } bb.setFromObject(o).getSize(sz); if (Math.max(sz.x, sz.y, sz.z) < 0.45) o.castShadow = false; }); }
+{ const bb = new THREE.Box3(), sz = new THREE.Vector3(); kitchen.root.traverse((o) => { if (!o.isMesh || !o.castShadow) return; if (o.isInstancedMesh) { o.castShadow = false; return; } bb.setFromObject(o).getSize(sz); if (Math.max(sz.x, sz.y, sz.z) < 1.5) o.castShadow = false; }); }
+// back counters sit behind Panda in the opening shots: a touch darker so his white fur separates from them
+{ const bb = new THREE.Box3(), c = new THREE.Vector3(); kitchen.root.traverse((o) => { if (!o.isMesh || o.isInstancedMesh) return; bb.setFromObject(o); bb.getCenter(c); if (bb.max.z < 0.3 && c.y < 1.2 && o.material?.color) { o.material = o.material.clone(); o.material.color.multiplyScalar(0.72); } }); }
 const env = scene.environment ?? null;
 const knife = createKnife({ envMap: env }); const title = createWoodenTitle({ envMap: env }); scene.add(title.group);
 const op = createOpening({ scene, camera, kitchen, panda, knife, title, marks, renderer });

@@ -113,19 +113,22 @@ export function createWoodenTitle({ envMap = null, unit = 0.18, radius = 0.14, s
   const uniforms = { uT: { value: 0 } };
   const mat = new THREE.MeshStandardMaterial({ color: '#FFFFFF', map: bambooTexture(5), roughness: 0.42, metalness: 0, emissive: '#6E9A22', emissiveIntensity: 0.32, envMap, envMapIntensity: 0.55 });
   if (!mat.map) mat.color.set('#B5D55A');
-  mat.onBeforeCompile = (sh) => {
+  const inject = (m, grow) => { m.onBeforeCompile = (sh) => {
     sh.uniforms.uT = uniforms.uT;
     sh.vertexShader = sh.vertexShader.replace('#include <common>', `#include <common>
       uniform float uT; attribute vec3 aPivot, aDir, aTime;
       float backOut(float x){ float c1 = 1.9, c3 = c1 + 1.0; x = x - 1.0; return 1.0 + c3 * x * x * x + c1 * x * x; }`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
+      transformed += normal * ${grow.toFixed(5)};
       { float pr = clamp((uT - aTime.x) / aTime.y, 0.0, 1.0); float e = backOut(pr); float ang = (1.0 - e) * aTime.z;
         vec3 d = position - aPivot; float cs = cos(ang), sn = sin(ang); d.xy = vec2(cs * d.x - sn * d.y, sn * d.x + cs * d.y);
-        float sc = pr <= 0.0 ? 0.0 : e; transformed = aPivot + d * sc + aDir * (1.0 - clamp(e, 0.0, 1.2)) * step(0.0001, pr + 0.0); if (pr <= 0.0) transformed = aPivot; }`);
-  };
-  mat.customProgramCacheKey = () => 'woodenTitle';
+        float sc = pr <= 0.0 ? 0.0 : e; transformed = aPivot + d * sc + aDir * (1.0 - clamp(e, 0.0, 1.2)) * step(0.0001, pr + 0.0) + normal * ${grow.toFixed(5)} * sc; if (pr <= 0.0) transformed = aPivot; }`);
+  }; m.customProgramCacheKey = () => 'woodenTitle' + grow; };
+  inject(mat, 0);
+  const outline = new THREE.MeshBasicMaterial({ color: '#14200a', side: THREE.BackSide }); inject(outline, rad * 0.45);
   const mesh = new THREE.Mesh(merged, mat); mesh.name = 'woodenTitle'; mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = false;
-  const group = new THREE.Group(); group.name = 'titleGroup'; group.add(mesh);
+  const shell = new THREE.Mesh(merged, outline); shell.frustumCulled = false; shell.name = 'titleOutline';
+  const group = new THREE.Group(); group.name = 'titleGroup'; group.add(shell, mesh);
 
   const info = {
     letters: nLetters, spanX: [x0, x0 + cursor * unit + tan * 1.6 * unit], baseY: S.y, z: S.z, knifeTopV: vTop, unit,
@@ -136,7 +139,7 @@ export function createWoodenTitle({ envMap = null, unit = 0.18, radius = 0.14, s
     /** master-timeline seconds -> pose of every letter (pure) */
     setTime(t) { uniforms.uT.value = t; },
     setEnvMap(t) { mat.envMap = t; mat.needsUpdate = true; },
-    dispose() { merged.dispose(); mat.map?.dispose(); mat.dispose(); },
+    dispose() { merged.dispose(); mat.map?.dispose(); mat.dispose(); outline.dispose(); },
   };
 }
 

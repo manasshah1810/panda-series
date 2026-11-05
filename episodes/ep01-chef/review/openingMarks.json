@@ -67,16 +67,16 @@
   },
   "M7_title_lift": {
    "position": [
-    2.7,
+    2.5,
     1.4,
     4.9
    ],
    "lookAt": [
-    1.95,
+    1.85,
     1.25,
     1.1
    ],
-   "fov": 44,
+   "fov": 48,
    "source": "opening",
    "note": "wide enough for the whole one-line title; the kitchen M7 was too tight for 25 letters"
   },

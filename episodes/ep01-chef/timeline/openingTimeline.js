@@ -97,7 +97,7 @@ export function createOpening({ scene, camera, kitchen, panda, knife, title, mar
   body.to(root.position, { y: pm.y + LIFT, duration: FALL_D, ease: 'power2.in' }, FALL_T);
   expr(body, panda, 'surprised', 4.55, 0.15);
   rotBy(body, panda, 'shoulderL', { x: -2.4, z: 0.5 }, 4.7, 0.3, EASE.body); rotBy(body, panda, 'shoulderR', { x: -2.4, z: -0.5 }, 4.7, 0.3, EASE.body);
-  squashTo(body, panda, 0.1, FALL_T + FALL_D, 0.1, 'power2.out'); squashTo(body, panda, 0, FALL_T + FALL_D + 0.1, 0.5, EASE.jiggle);   // thud
+  squashTo(body, panda, 0.17, FALL_T + FALL_D, 0.1, 'power2.out'); squashTo(body, panda, 0, FALL_T + FALL_D + 0.1, 0.5, EASE.jiggle);   // thud
   earFlop(body, panda, FALL_T + FALL_D, 1, 1.1);
   // lies there, dazed, then the ears droop and he giggles
   rotBy(body, panda, 'head', { y: 0.35, z: 0.2 }, 5.25, 0.5, 'sine.inOut'); rotBy(body, panda, 'head', { y: -0.3, z: -0.2 }, 5.75, 0.5, 'sine.inOut');
@@ -136,8 +136,22 @@ export function createOpening({ scene, camera, kitchen, panda, knife, title, mar
   rotBy(body, panda, 'head', { y: yaw, z: 0, x: -0.04 }, 7.5 + S, 0.5, EASE.body);
   body.to(panda.face.state, { lookX: 0.5, duration: 0.2 }, 7.4 + S);
   expr(body, panda, 'bigGrin', 7.6 + S, 0.3);
-  body.to(root.position, { x: pm.x - 0.95, duration: 1.2, ease: 'sine.inOut' }, 8.5 + S - 0.0 - 0.9);   // happy sidestep out of the title's way
+  body.to(root.position, { x: pm.x - 1.15, duration: 1.2, ease: 'sine.inOut' }, 8.5 + S - 0.0 - 0.9);   // happy sidestep out of the title's way
   body.set(root.position, { x: pm.x }, 0);
+
+  // ---------- secondary motion: toque + apron bow lag behind the body (sequential, non-overlapping tweens => scrub-safe) ----------
+  const hat = panda.root.getObjectByName('toque'), bow = panda.root.getObjectByName('bow');
+  const chain = (obj, axis, rest, steps) => { body.set(obj, { [axis]: rest }, 0); let end = 0; for (const [t, v, d, e] of steps) { if (t < end - 1e-6) throw new Error('secondary tweens overlap at ' + t); body.to(obj, { [axis]: v, duration: d, ease: e || 'sine.inOut' }, t); end = t + d; } };
+  if (hat) {
+    chain(hat.rotation, 'z', hat.rotation.z, [[2.2, -0.14, 0.5], [2.7, 0.28, 0.45], [3.15, -0.24, 0.45], [3.6, 0.2, 0.45], [4.05, -0.16, 0.45], [4.62, 0.75, 0.42, 'power2.in'], [5.04, -0.4, 0.12, 'power2.out'], [5.16, 0.04, 0.6, EASE.jiggle], [5.95, 0.05, 0.05], [6.0, 0.35, 0.15, 'power2.out'], [6.15, 0.04, 0.7, EASE.jiggle]]);
+    chain(hat.rotation, 'x', hat.rotation.x, [[2.2, 0.1, 0.5], [2.75, -0.2, 0.5], [4.62, -0.35, 0.42, 'power2.in'], [5.04, 0.25, 0.12, 'power2.out'], [5.16, -0.07, 0.6, EASE.jiggle], [6.0, -0.2, 0.15, 'power2.out'], [6.15, -0.07, 0.7, EASE.jiggle]]);
+  }
+  if (bow) {
+    chain(bow.rotation, 'z', 0, [[2.2, 0.2, 0.5], [2.7, -0.5, 0.4], [3.1, 0.55, 0.4], [3.5, -0.5, 0.4], [3.9, 0.45, 0.4], [4.3, -0.3, 0.32], [4.62, 0.7, 0.42, 'power2.in'], [5.04, -0.5, 0.12, 'power2.out'], [5.16, 0, 0.8, EASE.jiggle], [6.0, 0.5, 0.15, 'power2.out'], [6.15, 0, 0.8, EASE.jiggle]]);
+    chain(bow.rotation, 'x', 0, [[2.7, -0.3, 0.4], [3.5, 0.3, 0.5], [4.62, -0.5, 0.42, 'power2.in'], [5.04, 0.5, 0.12, 'power2.out'], [5.16, 0, 0.8, EASE.jiggle]]);
+  }
+  // anticipation: a crouch just before the tumble, so the heavy landing reads as weight
+  squashTo(body, panda, 0.08, 4.4, 0.2, 'power2.out'); squashTo(body, panda, 0, 4.62, 0.2, 'power2.in');
 
   // ---------- camera: Hermite path through the knots ----------
   const knots = marks.path.map((k) => { const m = marks.marks[k.mark], p = V(m.position), l = V(m.lookAt); p.lerp(l, k.push ?? 0); return { t: k.t, v: [...p.toArray(), ...l.toArray(), m.fov], speed: k.speed }; });
@@ -185,6 +199,22 @@ export function createOpening({ scene, camera, kitchen, panda, knife, title, mar
     } else clip.constant = 1e4;
   }
 
+  // ---------- contact shadow: soft blob under Panda, widens when he tips and fades when he lifts ----------
+  const csTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 4, 64, 64, 62); gr.addColorStop(0, 'rgba(0,0,0,0.85)'); gr.addColorStop(0.55, 'rgba(0,0,0,0.45)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); const tx = new THREE.CanvasTexture(c); return tx; })();
+  const contact = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: csTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+  contact.rotation.x = -Math.PI / 2; contact.renderOrder = 2; contact.name = 'contactShadow'; scene.add(contact);
+  const dustU = kitchen._state?.ctx?.fx?.dust?.mat.uniforms;
+  function secondaryFx(t) {
+    const lift = Math.max(0, root.position.y - pm.y), tip = Math.sin(Math.min(Math.abs(root.rotation.z), Math.PI / 2));
+    const sc = 1.15 + 0.5 * tip; contact.position.set(root.position.x + tip * 0.3, pm.y + 0.012, root.position.z); contact.scale.set(sc * (1 + 0.8 * tip), sc, 1);
+    contact.material.opacity = 0.75 * (1 - clamp01(lift / 0.7)) * (0.55 + 0.45 * (1 - tip * 0.4));
+    if (dustU) { // motes get shoved by the stumble, the thud and the pop-up
+      const pulse = (t0, k) => (t > t0 ? k * Math.exp(-(t - t0) * 2.6) * sm(0, 0.04, t - t0) : 0);
+      dustU.uAmp.value = Math.max(pulse(5.04, 1.0), pulse(6.0, 0.5), 0.35 * sm(2.7, 3.3, t) * (1 - sm(4.4, 4.9, t)));
+      dustU.uPush.value.set(root.position.x, pm.y + 0.5, root.position.z);
+    }
+  }
+
   // ---------- master ----------
   function apply(t) {
     updateKnife(t);
@@ -194,7 +224,7 @@ export function createOpening({ scene, camera, kitchen, panda, knife, title, mar
     const tilt = (marks.tiltUp.deg * Math.PI) / 180 * sm(marks.tiltUp.from, marks.tiltUp.to, t); if (tilt) camera.rotateX(tilt);
     { const u = t - 5.04; if (u > 0 && u < 0.7) { const a = 0.05 * Math.exp(-u * 7) * Math.sin(u * 46); camera.position.y += a; camera.position.x += a * 0.4; } }   // thud shake
     camera.updateProjectionMatrix();
-    title?.setTime(t); kitchen.setTime(t);   // the board never moves: only the knife quivers
+    secondaryFx(t); title?.setTime(t); kitchen.setTime(t);   // the board never moves: only the knife quivers
   }
   const master = gsap.timeline({ paused: true, onUpdate: () => apply(master.time()) });
   body.paused(false); master.add(body, 0); master.to({}, { duration: OPENING_END }, 0);

@@ -37,3 +37,11 @@ One master GSAP timeline, scrub-safe: `timeline/openingTimeline.js` (`createOpen
 - Clumsy beat: pirouette -> wobble, windmilling arms, scrambling feet -> topples onto his side (camera thud) -> dazed -> pops back up grinning.
 - Cutting board no longer wobbles; the stuck knife quivers for ~0.55 s (3.2 deg, damped).
 - Title is bamboo: canvas texture with node rings placed by stroke arc length; Panda sidesteps so the title clears him.
+
+## v3 polish
+- Secondary motion: toque and apron bow lag and whip through the turn, fall and pop-up (sequential tweens, scrub-safe).
+- Weight: crouch before the tumble, heavier landing squash.
+- Contact shadow blob under Panda (widens when he tips, fades when lifted).
+- Dust motes are pushed away by Panda at the stumble, thud and pop-up (shader uniform, pure function of time).
+- Bamboo title has a dark outline; end frame re-framed; back counters darkened (separation passes at 4 of 6 sample times).
+- Open: draw calls ~141 incl. shadows (target 120); knife handle covers the "i" of "if" in the end frame; real-GPU fps unmeasured.

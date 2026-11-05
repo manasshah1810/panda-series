@@ -57,7 +57,7 @@ export default {
     apron.add(new THREE.Mesh(ribbon(pts, nrm, () => 0.03, () => 0.009), navy));
     const rb = fitRing(wy, 0.03), bowZ = -rb.rz - 0.02, bow = new THREE.Group(); bow.position.set(0, wy - yS, bowZ);
     for (const s of [-1, 1]) { const lp = new THREE.Mesh(new THREE.SphereGeometry(0.05, 14, 10), navy); lp.scale.set(1, 0.6, 0.35); lp.position.set(s * 0.06, 0.01, -0.012); lp.rotation.z = s * -0.25; const tail = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.14, 0.008), navy); tail.position.set(s * 0.04, -0.09, -0.012); tail.rotation.z = s * 0.28; bow.add(lp, tail); }
-    const knot = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8), navy); knot.scale.set(1, 0.9, 0.7); knot.position.z = -0.006; bow.add(knot); bow.rotation.x = 0; apron.add(bow);
+    const knot = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8), navy); knot.scale.set(1, 0.9, 0.7); knot.position.z = -0.006; bow.add(knot); bow.rotation.x = 0; bow.name = 'bow'; apron.add(bow);
     group.add(apron);
 
     // ---- neckerchief: soft tapered band on the neck/shoulders, small knot at the front, gentle sag ----
