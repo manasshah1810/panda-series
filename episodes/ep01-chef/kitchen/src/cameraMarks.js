@@ -20,4 +20,4 @@ export const CAMERA_MARKS = {
   M13_topdown_board_lock: { position: [0.0, 2.9, 1.1], lookAt: [0.0, 1.02, 1.1], target: [0.0, 1.02, 1.1], fov: 34, note: 'Locked bird-eye view over the board for the five ingredient drops', boardRelative: true },
 };
 /** Which way the Panda faces for each mark during the opening (rotation about Y). */
-export const MARK_PANDA_ROT_Y = { M1_establish_back: Math.PI, M2_dolly_in_apron: Math.PI, M3_flip_tilt_up: Math.PI, M4_turn_front_low: 0, M5_throw_side: 0, M6_macro_board: 0, M7_title_lift: 0, M8_fourth_wall: 0, M7_title_end: 0, M8_whip_transit: 0, M9_hero_bowl_orbit_start: 0, M10_hero_bowl_orbit_end: 0, M11_steam_plunge: 0 };
+export const MARK_PANDA_ROT_Y = { M1_establish_back: Math.PI, M2_dolly_in_apron: Math.PI, M3_flip_tilt_up: Math.PI, M4_turn_front_low: 0, M5_throw_side: 0, M6_macro_board: 0, M7_title_lift: 0, M8_fourth_wall: 0, M7_title_end: 0, M8_whip_transit: 0, M9_hero_bowl_orbit_start: 0, M10_hero_bowl_orbit_end: 0, M11_steam_plunge: 0, M12_topdown_board_entry: 0, M13_topdown_board_lock: 0 };

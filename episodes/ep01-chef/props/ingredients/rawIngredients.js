@@ -136,7 +136,7 @@ export function createRawIngredients({ quality = 'high', envMap = null } = {}) {
 
   // ---------------- assemble ----------------
   const entries = [
-    ['bamboo_shoot', '01. Fresh Bamboo Shoot', [{ body: buildBamboo(), side: 'L', rest: [-0.33, 0.0], yaw: 0.35, H: 0.4, sq: { sy: 0.75, sxz: 1.12 } }]],
+    ['bamboo_shoot', '01. Fresh Bamboo Shoot', [{ body: buildBamboo(), side: 'L', rest: [-0.27, 0.0], yaw: 0.25, H: 0.4, sq: { sy: 0.75, sxz: 1.12 } }]],
     ['noodle_dough', '02. Hand-Pulled Dough', [{ body: buildDough(), side: 'R', rest: [0.32, 0.0], yaw: 0.0, H: 0.4, sq: { sy: 0.6, sxz: 1.25 } }]],
     ['shiitake_mushrooms', '03. Fresh Shiitake', [
       { body: buildShiitake(-0.5), side: 'L', rest: [-0.31, 0.2], yaw: 0.1, H: 0.4, sq: { sy: 0.85, sxz: 1.08 }, tumble: { axis: 'z', a0: 1.1 } },
