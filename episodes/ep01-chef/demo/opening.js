@@ -8,6 +8,8 @@ import { createOpening } from '../timeline/openingTimeline.js';
 import { OPENING_END } from '../timeline/beats.js';
 import { createRamenBowl } from '../props/ramen-bowl/ramenBowl.js';
 import { createHeroTeaseTimeline, createHeroSpot, HERO_TIMES } from '../timeline/heroTeaseBeat.js';
+import { createRawIngredients } from '../props/ingredients/rawIngredients.js';
+import { createMiseEnPlaceTimeline, createPandaPaws, MISE_DURATION } from '../timeline/miseEnPlaceBeat.js';
 import marks from '../review/openingMarks.json';
 
 const q = new URLSearchParams(location.search);
@@ -42,14 +44,20 @@ const heroTl = createHeroTeaseTimeline({
   ramenBowl: ramen, kitchenLighting: { lights: kitchen.lights, spot: heroSpot }, overlayElement: wash, hideOnReveal: [title.group],
 });
 op.attachHero(heroTl);
+// ---- Beat 2: the mise en place drop (five vegetarian ingredients on the cutting board, top-down), straight after the steam wash ----
+const boardCfg = kitchen.config.cuttingBoard, raw = createRawIngredients({ quality: q.get('quality') === 'low' ? 'low' : q.get('quality') === 'medium' ? 'medium' : 'high', envMap: kitchen._state?.env?.texture ?? null });
+raw.group.position.set(boardCfg.center[0], boardCfg.center[1] + boardCfg.size[2], boardCfg.center[2]); scene.add(raw.group);   // board frame: origin on the board surface
+const paws = createPandaPaws();
+const miseTl = createMiseEnPlaceTimeline({ cameraRig: { camera }, rawIngredients: raw, pandaPaws: paws, overlayElement: wash, lighting: { lights: kitchen.lights, spot: heroSpot }, hideDuringBeat: [knife, panda.root, ramen.group] });
+op.attachBeat(miseTl, OPENING_END + HERO_TIMES.duration);
 const render = () => renderer.render(scene, camera);
 window.__op = {
-  THREE, op, scene, camera, renderer, kitchen, panda, knife, title, ramen, heroTl, heroSpot, HERO_TIMES, OPENING_END,
+  THREE, op, scene, camera, renderer, kitchen, panda, knife, title, ramen, heroTl, heroSpot, HERO_TIMES, OPENING_END, raw, paws, miseTl, MISE_START: OPENING_END + HERO_TIMES.duration, MISE_DURATION,
   setSize(w, h) { renderer.setSize(w, h); camera.aspect = w / h; },
   seek(t) { camera.aspect = renderer.domElement.width / renderer.domElement.height; op.seek(t); render(); },
   frame(t) { window.__op.seek(t); return window.__op.snap(); },
   /** canvas -> png, with the DOM steam-wash overlay composited on top (it is a DOM element in the player) */
-  snap() { const w = heroTl.hero.wash, cv = renderer.domElement; if (!w) return cv.toDataURL('image/png'); const c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height; const g = c.getContext('2d'); g.drawImage(cv, 0, 0); g.fillStyle = 'rgba(245,240,232,' + w + ')'; g.fillRect(0, 0, c.width, c.height); return c.toDataURL('image/png'); },
+  snap() { const w = +(wash.style.opacity || 0), cv = renderer.domElement; if (!w) return cv.toDataURL('image/png'); const c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height; const g = c.getContext('2d'); g.drawImage(cv, 0, 0); g.fillStyle = 'rgba(245,240,232,' + w + ')'; g.fillRect(0, 0, c.width, c.height); return c.toDataURL('image/png'); },
   /** hero-beat time (seconds from the start of the hero beat) -> data URL; optional free camera override for diagnostic stills */
   hero(local, cam) { const w = window.__op; camera.aspect = renderer.domElement.width / renderer.domElement.height; op.seek(OPENING_END - 1); op.seek(OPENING_END + local);   // (re-seek so a previous free-camera override is always replaced)
     if (cam) { camera.up.set(...(cam.up ?? [0, 1, 0])); camera.position.set(...cam.position); camera.fov = cam.fov; camera.lookAt(...cam.lookAt); camera.updateProjectionMatrix(); }

@@ -236,6 +236,8 @@ export function createOpening({ scene, camera, kitchen, panda, knife, title, mar
     master, apply, camAt, knife, solved: A, targets: T, flight,
     /** Add the hero-tease timeline (heroTeaseBeat.js) right after the opening; the master then runs OPENING_END + hero duration. */
     attachHero(heroTl) { heroOn = true; heroTl.paused(false); master.add(heroTl, OPENING_END); return master; },
+    /** Append a later beat (e.g. the mise-en-place timeline) at master time `at`; it must be paused-built and own its own camera. */
+    attachBeat(beatTl, at) { beatTl.paused(false); master.add(beatTl, at); return master; },
     seek(t) { master.time(Math.min(master.duration(), Math.max(0, t)), false); apply(master.time()); },
     knifeTip() { return new THREE.Vector3(0, KNIFE.tipY, 0).applyMatrix4(knife.matrixWorld); },
   };
