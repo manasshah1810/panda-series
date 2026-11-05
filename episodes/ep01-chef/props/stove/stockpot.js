@@ -15,10 +15,10 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
  */
 export const POT = Object.freeze({
   radius: 0.2, height: 0.262, wall: 0.03, brothY: 0.19, brothRadius: 0.168,
-  maxSplashes: 14, dropletsPerSplash: 16, splashDuration: 0.95,
+  maxSplashes: 14, dropletsPerSplash: 16, dropletBlocks: 5, splashDuration: 0.95,   // splash k reuses droplet block (k % dropletBlocks); triggerSplash refuses a splash whose block is still busy
   colors: { enamel: '#4A5C66', steel: '#8C9295', broth: '#8B4513', droplet: '#D98A2B' },
 });
-const TIERS = { high: { rad: 56, ring: 30, sph: [6, 4] }, medium: { rad: 40, ring: 22, sph: [5, 4] }, low: { rad: 24, ring: 14, sph: [4, 3] } };
+const TIERS = { high: { rad: 56, ring: 26, sph: [6, 4] }, medium: { rad: 40, ring: 22, sph: [5, 4] }, low: { rad: 24, ring: 14, sph: [4, 3] } };
 const GRAVITY = 3.4, FLIGHT = 0.8;          // droplet flight lasts at most FLIGHT s of 'splash time' (the splash scalar p maps to p * FLIGHT)
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
 const hash = (n) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
@@ -89,7 +89,7 @@ void main() {
   col += uFoam * (0.55 * (b1.x + b2.x * 0.7) + 0.16 * (b1.y + b2.y)) * uBoil + uFoam * foam * 0.55;
   // gloss (roughness ~0.1): sharp key-light highlight on the displaced normal + warm sky fresnel, then a tiny bit of fake subsurface warmth
   vec3 Hh = normalize(normalize(uKeyDir) + V);
-  float spec = pow(max(dot(N, Hh), 0.0), 220.0) * 1.6 + pow(max(dot(N, Hh), 0.0), 40.0) * 0.12;
+  float spec = pow(max(dot(N, Hh), 0.0), 260.0) * 0.8 + pow(max(dot(N, Hh), 0.0), 40.0) * 0.06;
   float fres = pow(1.0 - max(dot(N, V), 0.0), 4.0);
   col = col * (0.82 + 0.18 * dot(N, normalize(uKeyDir))) + vec3(1.0, 0.93, 0.8) * spec + vec3(0.62, 0.45, 0.28) * fres * 0.5;
   col += uShallow * 0.12 * (1.0 - r) * (0.5 + 0.5 * sin(uTime * 1.7));   // faint warm glow from the depths
@@ -115,7 +115,7 @@ function polarDisc(radius, rings, segs) {
  */
 export function createStockpot({ quality = 'high', envMap = null } = {}) {
   const T = TIERS[quality]; if (!T) throw new Error('createStockpot: unknown quality ' + quality);
-  const { radius: R, height: H, brothY, brothRadius, maxSplashes: NS, dropletsPerSplash: ND } = POT;
+  const { radius: R, height: H, brothY, brothRadius, maxSplashes: NS, dropletsPerSplash: ND, dropletBlocks: NBLK } = POT;
   const group = new THREE.Group(); group.name = 'stockpot'; const disposables = [];
 
   // ---- pot body: one lathe (outer wall, bevelled rim, thick inner wall, floor). Heavy matte enamel.
@@ -150,22 +150,22 @@ export function createStockpot({ quality = 'high', envMap = null } = {}) {
   // ---- splash droplets: ONE InstancedMesh, ND amber spheres per splash slot, parked at scale 0 under the surface
   const dGeo = new THREE.SphereGeometry(1, T.sph[0], T.sph[1]);
   const dMat = new THREE.MeshStandardMaterial({ color: POT.colors.droplet, roughness: 0.15, metalness: 0, emissive: '#7A3A08', emissiveIntensity: 0.5, envMap, envMapIntensity: 0.5 });
-  const drops = new THREE.InstancedMesh(dGeo, dMat, NS * ND); drops.name = 'splashDroplets'; drops.frustumCulled = false; drops.castShadow = false; drops.receiveShadow = false; group.add(drops);
+  const drops = new THREE.InstancedMesh(dGeo, dMat, NBLK * ND); drops.name = 'splashDroplets'; drops.frustumCulled = false; drops.castShadow = false; drops.receiveShadow = false; group.add(drops);
   // per-droplet closed-form parabola, seeded by a hash of (slot, j)
-  const proto = []; for (let k = 0; k < NS; k++) for (let j = 0; j < ND; j++) { const s = k * 97 + j * 13 + 1, a = (j / ND) * Math.PI * 2 + hash(s) * 0.5, up = 0.55 + 0.55 * hash(s + 3);
+  const proto = []; for (let k = 0; k < NBLK; k++) for (let j = 0; j < ND; j++) { const s = k * 97 + j * 13 + 1, a = (j / ND) * Math.PI * 2 + hash(s) * 0.5, up = 0.55 + 0.55 * hash(s + 3);
     proto.push({ a, vh: 0.06 + 0.12 * hash(s + 1), vy: up, size: 0.0085 + 0.0075 * hash(s + 2), tf: (2 * up) / GRAVITY }); }
-  const slots = Array.from({ length: NS }, () => ({ x: 0, z: 0, p: 0 })); let used = 0;
+  const slots = Array.from({ length: NS }, () => ({ x: 0, z: 0, p: 0 })); let used = 0; const starts = [];
   const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), HIDE = new THREE.Matrix4().makeScale(0, 0, 0);
   /** Single writer: every droplet matrix and every ripple uniform is an absolute function of the splash scalars. Safe to call any number of times, in any order. */
   function update() {
+    for (let i = 0; i < NBLK * ND; i++) drops.setMatrixAt(i, HIDE);
     for (let k = 0; k < NS; k++) {
       const sl = slots[k], active = k < used && sl.p > 0 && sl.p < 1;
       imp[k].set(sl.x, sl.z, active ? sl.p : 0, 0);
+      if (!active) continue;
       for (let j = 0; j < ND; j++) {
-        const i = k * ND + j;
-        if (!active) { drops.setMatrixAt(i, HIDE); continue; }
-        const d = proto[i], t = sl.p * FLIGHT;
-        if (t >= d.tf) { drops.setMatrixAt(i, HIDE); continue; }
+        const i = (k % NBLK) * ND + j, d = proto[i], t = sl.p * FLIGHT;
+        if (t >= d.tf) continue;
         const u = t / d.tf, s = d.size * Math.pow(Math.sin(Math.PI * u), 0.45) * (1 - 0.35 * u);     // grows out of the surface, thins as it falls back in
         const stretch = 1 + 0.6 * (1 - Math.abs(2 * u - 1));                                           // slightly stretched along its flight, round at the apex
         _p.set(sl.x + Math.cos(d.a) * d.vh * t, brothY + d.vy * t - 0.5 * GRAVITY * t * t, sl.z + Math.sin(d.a) * d.vh * t);
@@ -174,12 +174,12 @@ export function createStockpot({ quality = 'high', envMap = null } = {}) {
     }
     drops.instanceMatrix.needsUpdate = true;
   }
-  for (let i = 0; i < NS * ND; i++) drops.setMatrixAt(i, HIDE); drops.instanceMatrix.needsUpdate = true;
+  for (let i = 0; i < NBLK * ND; i++) drops.setMatrixAt(i, HIDE); drops.instanceMatrix.needsUpdate = true;
 
   /** Adds ONE tween (a splash's progress scalar 0 -> 1) to `timeline` at `timeOffset`; returns the slot index. x / z are pot-local on the broth plane. */
   function triggerSplash(timeline, timeOffset, positionX, positionZ) {
     if (used >= NS) throw new Error('createStockpot: out of splash slots (max ' + NS + ')');
-    const k = used++, sl = slots[k]; sl.x = positionX; sl.z = positionZ; sl.p = 0;
+    const k = used++, sl = slots[k]; if (k >= NBLK && timeOffset < starts[k - NBLK] + POT.splashDuration) throw new Error('createStockpot: splash ' + k + ' would reuse droplet block ' + (k % NBLK) + ' while splash ' + (k - NBLK) + ' is still airborne'); starts[k] = timeOffset; sl.x = positionX; sl.z = positionZ; sl.p = 0;
     timeline.fromTo(sl, { p: 0 }, { p: 1, duration: POT.splashDuration, ease: 'none', immediateRender: false, overwrite: false, onUpdate: update }, timeOffset);
     return k;
   }

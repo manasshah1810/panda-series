@@ -14,6 +14,7 @@ import { createSliceableBamboo } from '../props/ingredients/sliceableBamboo.js';
 import { createAsmrChopTimeline, CHOP_TIMES } from '../timeline/asmrChopBeat.js';
 import { CAMERA_MARKS, M14_FRAMING_NUDGE } from '../kitchen/src/cameraMarks.js';
 import { createStockpot } from '../props/stove/stockpot.js';
+import { createBrothBuildTimeline, createPotSpot, BROTH_TIMES } from '../timeline/brothBuildBeat.js';
 import marks from '../review/openingMarks.json';
 
 const q = new URLSearchParams(location.search);
@@ -64,13 +65,22 @@ op.attachBeat(miseTl, OPENING_END + HERO_TIMES.duration);
 const sliceable = createSliceableBamboo({ quality: q.get('quality') === 'low' ? 'low' : q.get('quality') === 'medium' ? 'medium' : 'high', envMap: kitchen._state?.env?.texture ?? null });
 raw.group.add(sliceable.group); sliceable.group.rotation.y = Math.PI / 2; sliceable.group.visible = false;   // lies along board +x (tip towards the lens) exactly where the solid cone lay; it clears the bok choy / shiitake / dough
 const render = () => renderer.render(scene, camera);
+const potSpot = createPotSpot(pot.brothWorld()); scene.add(potSpot, potSpot.target);   // lights are added before the first render: no material recompiles later
 // ---- Beat 3: the ASMR scroll-chop, stitched on after the mise-en-place beat: Beat 1 (opening) -> 1b (hero bowl) -> 2 (mise en place) -> 3 (chop)
 const vignette = document.getElementById('vignette'), CHOP_START = OPENING_END + HERO_TIMES.duration + MISE_DURATION;
 const chopTl = createAsmrChopTimeline({ cameraRig: { camera }, sliceable, rawIngredients: raw, miseTimeline: miseTl, panda, knife, opening: op, scene, lighting: { lights: kitchen.lights, spot: heroSpot }, fog: scene.fog, vignetteElement: vignette });
 op.releaseKnifeAfter(CHOP_START); op.attachBeat(chopTl, CHOP_START);
 { const gv = sliceable.group.visible, fv = chopTl.chop.flecks.mesh.visible; sliceable.group.visible = true; chopTl.chop.flecks.mesh.visible = true; renderer.compile(scene, camera); sliceable.group.visible = gv; chopTl.chop.flecks.mesh.visible = fv; }   // warm the shaders so the first chop never hitches
+// ---- Beat 4: the broth build, stitched on straight after the chop's flourish + wink. It is built with the world in the state the chop leaves it (master time = end of the chop beat).
+const BROTH_START = CHOP_START + CHOP_TIMES.duration;
+op.seek(BROTH_START);
+const brothTl = createBrothBuildTimeline({ cameraRig: { camera, startPose: chopTl.chop.marks.M15 }, stockpot: pot, rawIngredients: raw, sliceableBamboo: sliceable, scene, overlayElement: wash, lighting: { spot: potSpot },
+  hideDuringBeat: [panda.root, knife, raw.group, chopTl.chop.flecks.mesh, paws.group] });
+op.attachBeat(brothTl, BROTH_START);
+{ const hv = brothTl.broth.root.children.map((o) => o.visible); brothTl.broth.root.traverse((o) => { o.visible = true; }); renderer.compile(scene, camera); brothTl.broth.root.children.forEach((o, i) => { o.visible = hv[i]; }); }   // warm the shaders (steam, chilli, clones) so the beat never hitches
+op.seek(0);
 window.__op = {
-  THREE, op, pot, scene, camera, renderer, kitchen, panda, knife, title, ramen, heroTl, heroSpot, HERO_TIMES, OPENING_END, raw, paws, miseTl, MISE_START: OPENING_END + HERO_TIMES.duration, MISE_DURATION, chopTl, CHOP_START, CHOP_DURATION: CHOP_TIMES.duration, vignette,
+  THREE, op, pot, scene, camera, renderer, kitchen, panda, knife, title, ramen, heroTl, heroSpot, HERO_TIMES, OPENING_END, raw, paws, miseTl, MISE_START: OPENING_END + HERO_TIMES.duration, MISE_DURATION, chopTl, CHOP_START, brothTl, BROTH_START, BROTH_DURATION: BROTH_TIMES.duration, potSpot, CHOP_DURATION: CHOP_TIMES.duration, vignette,
   setSize(w, h) { renderer.setSize(w, h); camera.aspect = w / h; },
   seek(t) { camera.aspect = renderer.domElement.width / renderer.domElement.height; op.seek(t); render(); },
   frame(t) { window.__op.seek(t); return window.__op.snap(); },

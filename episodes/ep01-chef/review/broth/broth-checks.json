@@ -1,0 +1,165 @@
+{
+ "scrub": {
+  "n": 40,
+  "fwdBwd": true,
+  "fwdRnd": true,
+  "back": {
+   "panda": true,
+   "knife": true,
+   "raw": true,
+   "wash": 0,
+   "spot": 0
+  }
+ },
+ "budget": [
+  {
+   "t": 0,
+   "main": {
+    "calls": 137,
+    "tris": 124072
+   },
+   "full": {
+    "calls": 195,
+    "tris": 192798
+   }
+  },
+  {
+   "t": 0.35,
+   "main": {
+    "calls": 46,
+    "tris": 73274
+   },
+   "full": {
+    "calls": 104,
+    "tris": 142000
+   }
+  },
+  {
+   "t": 0.7,
+   "main": {
+    "calls": 35,
+    "tris": 61110
+   },
+   "full": {
+    "calls": 54,
+    "tris": 97320
+   }
+  },
+  {
+   "t": 1.3,
+   "main": {
+    "calls": 35,
+    "tris": 61110
+   },
+   "full": {
+    "calls": 54,
+    "tris": 97320
+   }
+  },
+  {
+   "t": 1.9,
+   "main": {
+    "calls": 39,
+    "tris": 64022
+   },
+   "full": {
+    "calls": 58,
+    "tris": 100232
+   }
+  },
+  {
+   "t": 3.05,
+   "main": {
+    "calls": 41,
+    "tris": 64536
+   },
+   "full": {
+    "calls": 60,
+    "tris": 100746
+   }
+  },
+  {
+   "t": 3.55,
+   "main": {
+    "calls": 39,
+    "tris": 64022
+   },
+   "full": {
+    "calls": 58,
+    "tris": 100232
+   }
+  },
+  {
+   "t": 5.7,
+   "main": {
+    "calls": 37,
+    "tris": 62454
+   },
+   "full": {
+    "calls": 56,
+    "tris": 98664
+   }
+  },
+  {
+   "t": 6.9,
+   "main": {
+    "calls": 36,
+    "tris": 61814
+   },
+   "full": {
+    "calls": 55,
+    "tris": 98024
+   }
+  },
+  {
+   "t": 7.45,
+   "main": {
+    "calls": 36,
+    "tris": 61814
+   },
+   "full": {
+    "calls": 55,
+    "tris": 98024
+   }
+  },
+  {
+   "t": 8.3,
+   "main": {
+    "calls": 36,
+    "tris": 61814
+   },
+   "full": {
+    "calls": 55,
+    "tris": 98024
+   }
+  }
+ ],
+ "own": {
+  "pot": {
+   "drawCalls": 4,
+   "triangles": 10160
+  },
+  "chiliTris": 640,
+  "steamTris": 32,
+  "perKind": {
+   "shiitake": {
+    "meshes": 2,
+    "tris": 1536
+   },
+   "bamboo": {
+    "meshes": 1,
+    "tris": 672
+   },
+   "garlic": {
+    "meshes": 2,
+    "tris": 1148
+   },
+   "scallion": {
+    "meshes": 2,
+    "tris": 902
+   }
+  },
+  "pieces": 10
+ },
+ "errors": []
+}
