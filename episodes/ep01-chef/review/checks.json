@@ -1,6 +1,6 @@
 {
  "scrub": {
-  "frames": 81,
+  "frames": 109,
   "mismatches": [],
   "pass": true
  },
@@ -24,70 +24,75 @@
    "formulaDeg": 0
   },
   {
+   "tau": 0.1,
+   "measuredDeg": 1.783,
+   "formulaDeg": 1.8459
+  },
+  {
    "tau": 0.25,
-   "measuredDeg": -0.4392,
-   "formulaDeg": -0.4547
+   "measuredDeg": -0.8856,
+   "formulaDeg": -0.9168
   },
   {
    "tau": 0.5,
-   "measuredDeg": 0.3074,
-   "formulaDeg": 0.3182
+   "measuredDeg": 0,
+   "formulaDeg": 0
   },
   {
    "tau": 1,
    "measuredDeg": 0,
-   "formulaDeg": 0.0697
+   "formulaDeg": 0
   }
  ],
  "drawCalls": {
   "t0": {
-   "mainPass": 87,
+   "mainPass": 89,
    "withShadows": 139
   },
-  "t4.4": {
+  "t7.2": {
    "mainPass": 93,
    "withShadows": 142
   },
-  "t8": {
+  "t10.8": {
    "mainPass": 96,
    "withShadows": 142
   }
  },
  "separation": {
   "t0": {
-   "pandaPx": 30442,
-   "brightFurMedian": 0.7069992156862744,
-   "bgMedianBehindPanda": 0.6511803921568629,
+   "pandaPx": 30434,
+   "brightFurMedian": 0.7083207843137255,
+   "bgMedianBehindPanda": 0.6510996078431374,
    "ok": false
   },
   "t2": {
-   "pandaPx": 32517,
+   "pandaPx": 32767,
    "brightFurMedian": 0.7101231372549018,
-   "bgMedianBehindPanda": 0.653353725490196,
+   "bgMedianBehindPanda": 0.6508972549019608,
    "ok": false
   },
-  "t3.6": {
-   "pandaPx": 30812,
-   "brightFurMedian": 0.7218721568627451,
-   "bgMedianBehindPanda": 0.6345796078431372,
+  "t6.4": {
+   "pandaPx": 30547,
+   "brightFurMedian": 0.718233725490196,
+   "bgMedianBehindPanda": 0.6424227450980391,
    "ok": false
-  },
-  "t4.2": {
-   "pandaPx": 18315,
-   "brightFurMedian": 0.6888635294117647,
-   "bgMedianBehindPanda": 0.58344,
-   "ok": false
-  },
-  "t5": {
-   "pandaPx": 36500,
-   "brightFurMedian": 0.8466925490196079,
-   "bgMedianBehindPanda": 0.5265058823529412,
-   "ok": true
   },
   "t7": {
-   "pandaPx": 26392,
-   "brightFurMedian": 0.8340941176470589,
-   "bgMedianBehindPanda": 0.44837333333333335,
+   "pandaPx": 18127,
+   "brightFurMedian": 0.6817035294117647,
+   "bgMedianBehindPanda": 0.5807945098039216,
+   "ok": false
+  },
+  "t7.8": {
+   "pandaPx": 36034,
+   "brightFurMedian": 0.8451082352941175,
+   "bgMedianBehindPanda": 0.5330611764705883,
+   "ok": true
+  },
+  "t9.8": {
+   "pandaPx": 27006,
+   "brightFurMedian": 0.806627450980392,
+   "bgMedianBehindPanda": 0.6225003921568627,
    "ok": true
   }
  }

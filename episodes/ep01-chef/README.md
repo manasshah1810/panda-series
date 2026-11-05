@@ -29,3 +29,11 @@ One master GSAP timeline, scrub-safe: `timeline/openingTimeline.js` (`createOpen
 - Files: `props/knife/` (prop + flight/wobble maths), `title/woodenTitle.js` (one merged mesh, shader-driven build, knife = stem of the i in "if", its dot drops onto the handle), `timeline/beats.js`, `review/openingMarks.json`, `demo/index.html + opening.js (player: autoplay, play/pause, scrub bar; adaptive resolution 0.6x-1.5x to hold ~60 fps, shadows refreshed every 2nd frame while playing; ?capture = harness mode)`.
 - Run: `node episodes/ep01-chef/scripts/frames.mjs after` (frames), `node episodes/ep01-chef/scripts/checks.mjs` (scrub test, landing, wobble, draw calls, separation -> `review/checks.json`).
 - Status: see the final report in the session; the four panda-kit bug fixes are NOT done yet.
+
+
+## Iteration 9-10 (feedback round)
+- Camera and Panda now turn the SAME way (through his right / screen-left); the orbit starts with the turn.
+- Opening is 10.8 s (draw onward shifted by `SHIFT` = 2.8 s). Turn is slow and happy (smile / grin, no angry brows; `startTimeline` takes a `restFace` option).
+- Clumsy beat: pirouette -> wobble, windmilling arms, scrambling feet -> topples onto his side (camera thud) -> dazed -> pops back up grinning.
+- Cutting board no longer wobbles; the stuck knife quivers for ~0.55 s (3.2 deg, damped).
+- Title is bamboo: canvas texture with node rings placed by stroke arc length; Panda sidesteps so the title clears him.

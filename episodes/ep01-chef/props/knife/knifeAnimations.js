@@ -11,7 +11,7 @@ export const STICK_POINT = Object.freeze([1.35, 1.10, 1.1]);   // from the brief
 export const LAND_TILT_DEG = 15;                                  // tip down, 15 degrees off vertical, leaning "/" (handle away from Panda)
 export const EMBED = 0.06;                                        // how far the tip sinks below the board top (board is 0.10 thick)
 export const FLIGHT_SPIN_PITCH_DEG = 180 + LAND_TILT_DEG;         // knife flips tip-up -> tip-down while it travels (clockwise seen from +Z)
-export const WOBBLE = Object.freeze({ A: (4 * Math.PI) / 180, k: 4.0, w: 2 * Math.PI * 2.2, settleFrom: 0.9 });
+export const WOBBLE = Object.freeze({ A: (3.2 * Math.PI) / 180, k: 5.0, w: 2 * Math.PI * 3.0, dur: 0.55, settleFrom: 0.43 });   // a slight ~0.5 s quiver of the stuck knife (the board stays still)
 
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
 const smooth = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
@@ -22,9 +22,9 @@ export function wobbleFormula(tau) { return WOBBLE.A * Math.exp(-WOBBLE.k * tau)
  * Wobble used on screen. Identical to the formula for tau <= settleFrom (0.9); over the last 0.1 s a smoothstep window takes it to
  * EXACTLY 0 so the knife is dead still from tau = 1.0 on (the raw formula would still be 0.07 degrees at tau = 1).
  */
-export function wobbleAngle(tau) { tau = clamp01(tau); return wobbleFormula(tau) * (1 - smooth(WOBBLE.settleFrom, 1.0, tau)); }
+export function wobbleAngle(tau) { tau = Math.min(WOBBLE.dur, Math.max(0, tau)); return wobbleFormula(tau) * (1 - smooth(WOBBLE.settleFrom, WOBBLE.dur, tau)); }
 /** tau = clamp(t - tL, 0, 1) */
-export const wobbleTau = (t, tL) => clamp01(t - tL);
+export const wobbleTau = (t, tL) => Math.min(WOBBLE.dur, Math.max(0, t - tL));
 
 const TIP_DIR = new THREE.Vector3(-Math.sin((LAND_TILT_DEG * Math.PI) / 180), -Math.cos((LAND_TILT_DEG * Math.PI) / 180), 0);
 export const QUAT_LAND = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -(FLIGHT_SPIN_PITCH_DEG * Math.PI) / 180);

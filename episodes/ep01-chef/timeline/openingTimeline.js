@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { startTimeline, rotBy, moveBy, expr, squashTo, EASE } from '../../../panda-kit/src/animations/_util.js';
+import { startTimeline, rotBy, moveBy, expr, squashTo, earFlop, tailWag, EASE } from '../../../panda-kit/src/animations/_util.js';
 import { gripPose } from '../../../panda-kit/src/poses/applyPose.js';
 import { torsoSurfaceZ } from '../outfit/_fit.js';
 import { POCKET } from '../outfit/chefOutfit.js';
 import { KNIFE } from '../props/knife/knife.js';
 import { STICK_POINT, makeFlight, wobbledPose, wobbleAngle, wobbleTau } from '../props/knife/knifeAnimations.js';
-import { OPENING_END, DRAW, FLICK, B4_START, ellOf, tOfEll, T_LAND, T_RELEASE } from './beats.js';
+import { SHIFT, OPENING_END, DRAW, FLICK, B4_START, ellOf, tOfEll, T_LAND, T_RELEASE } from './beats.js';
 
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
 const sm = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
@@ -58,7 +58,7 @@ export function createOpening({ scene, camera, kitchen, panda, knife, title, mar
   const flight = makeFlight({ position: relPos, quaternion: relQ }, { stick });
 
   // ---------- panda body timeline (one timeline, one reset, no overlapping tweens) ----------
-  const body = startTimeline(panda);
+  const body = startTimeline(panda, { restFace: 'smile' });   // happy from the first frame
   const arm = (a, t, d, ease = EASE.body, twist) => {
     const rs = panda.restSnapshot;
     body.to(panda.rig.shoulderR.rotation, { x: rs.shoulderR.r[0] + a.sx, z: rs.shoulderR.r[2] + a.sz, duration: d, ease }, t);
@@ -66,15 +66,50 @@ export function createOpening({ scene, camera, kitchen, panda, knife, title, mar
     if (twist !== undefined) body.to(panda.rig.chest.rotation, { y: rs.chest.r[1] + twist, duration: d, ease }, t);
   };
   const REST = { sx: 0, sz: 0, ex: 0 };
-  // B1/B2: anticipation, head leads, heavy turn pi -> 0
-  squashTo(body, panda, 0.04, 1.6, 0.4, EASE.anticipate);
-  body.set(panda.root.rotation, { y: Math.PI }, 0);
-  body.to(panda.root.rotation, { y: Math.PI + 0.12, duration: 0.4, ease: EASE.anticipate }, 1.6);
-  rotBy(body, panda, 'head', { y: 0.5 }, 1.85, 0.4, EASE.body);
-  body.to(panda.root.rotation, { y: 0, duration: 1.45, ease: EASE.heavy }, 2.0);
-  rotBy(body, panda, 'head', { y: 0 }, 2.5, 0.8, EASE.body);
-  squashTo(body, panda, 0, 3.3, 0.5, EASE.jiggle);
-  expr(body, panda, 'determined', 3.2, 0.3);
+  // B1: happy back shot (breathing sway + tail wag), then B2: a slow, proud turn that goes wrong -- Panda loses his balance and topples
+  const S = SHIFT, root = panda.root, rz = (x, d, t, e = EASE.body) => body.to(root.rotation, { z: x, duration: d, ease: e }, t);
+  const R = panda.rig;
+  body.set(root.rotation, { x: 0, y: Math.PI, z: 0 }, 0); body.set(root.position, { y: pm.y }, 0);
+  rotBy(body, panda, 'spine', { z: 0.035 }, 0.15, 0.9, 'sine.inOut'); rotBy(body, panda, 'spine', { z: -0.035 }, 1.05, 0.9, 'sine.inOut'); rotBy(body, panda, 'spine', { z: 0 }, 1.95, 0.25, 'sine.out');
+  tailWag(body, panda, 0.3, 0.8, 1.2, 3);
+  expr(body, panda, 'bigGrin', 1.3, 0.5);
+  // wind-up: crouch + lean the wrong way, head already looking round (slow)
+  squashTo(body, panda, 0.05, 2.2, 0.5, EASE.anticipate);
+  body.to(root.rotation, { y: Math.PI - 0.2, duration: 0.5, ease: EASE.anticipate }, 2.2);
+  rotBy(body, panda, 'head', { y: -0.5 }, 2.35, 0.5, EASE.body);
+  squashTo(body, panda, 0, 2.75, 0.4, EASE.jiggle);
+  // slow proud pirouette through Panda's right (screen-left), the same way the camera orbits: pi -> 2pi
+  body.to(root.rotation, { y: 2 * Math.PI - 0.55, duration: 1.45, ease: 'sine.inOut' }, 2.7);
+  rotBy(body, panda, 'head', { y: 0 }, 3.2, 0.9, EASE.body);
+  for (const side of ['L', 'R']) { const k = side === 'L' ? 1 : -1;     // arms out for balance
+    rotBy(body, panda, 'shoulder' + side, { z: k * 0.9, x: 0 }, 3.0, 0.7, EASE.body); }
+  // he starts to wobble: roll side to side, arms windmilling, feet scrambling
+  rz(0.1, 0.25, 3.85, 'sine.inOut'); rz(-0.16, 0.3, 4.1, 'sine.inOut'); rz(0.14, 0.28, 4.4, 'sine.inOut');
+  body.to(root.rotation, { y: 2 * Math.PI + 0.15, duration: 0.8, ease: 'sine.inOut' }, 4.15);
+  expr(body, panda, 'oMouth', 3.9, 0.25);
+  rotBy(body, panda, 'shoulderL', { x: -1.6, z: 1.2 }, 3.85, 0.3, 'sine.inOut'); rotBy(body, panda, 'shoulderL', { x: 1.6, z: 1.1 }, 4.15, 0.3, 'sine.inOut'); rotBy(body, panda, 'shoulderL', { x: -1.4, z: 1.2 }, 4.45, 0.25, 'sine.inOut');
+  rotBy(body, panda, 'shoulderR', { x: 1.6, z: -1.2 }, 3.85, 0.3, 'sine.inOut'); rotBy(body, panda, 'shoulderR', { x: -1.6, z: -1.1 }, 4.15, 0.3, 'sine.inOut'); rotBy(body, panda, 'shoulderR', { x: 1.4, z: -1.2 }, 4.45, 0.25, 'sine.inOut');
+  rotBy(body, panda, 'hipL', { x: -0.55 }, 3.9, 0.2, EASE.body); rotBy(body, panda, 'hipL', { x: 0.4 }, 4.1, 0.2, EASE.body); rotBy(body, panda, 'hipL', { x: -0.4 }, 4.3, 0.2, EASE.body); rotBy(body, panda, 'hipL', { x: 0 }, 4.7, 0.2, EASE.body);
+  rotBy(body, panda, 'hipR', { x: 0.5 }, 3.95, 0.2, EASE.body); rotBy(body, panda, 'hipR', { x: -0.5 }, 4.15, 0.2, EASE.body); rotBy(body, panda, 'hipR', { x: 0.3 }, 4.35, 0.2, EASE.body); rotBy(body, panda, 'hipR', { x: 0 }, 4.7, 0.2, EASE.body);
+  // the topple: falls onto his side on the open floor, arms flung up
+  const FALL_T = 4.62, FALL_D = 0.42, FALL_X = 1.5, LIFT = 0.45;
+    body.to(root.rotation, { z: FALL_X, duration: FALL_D, ease: 'power2.in' }, FALL_T);   // tips sideways (toward the camera's left): the silhouette reads
+  body.to(root.position, { y: pm.y + LIFT, duration: FALL_D, ease: 'power2.in' }, FALL_T);
+  expr(body, panda, 'surprised', 4.55, 0.15);
+  rotBy(body, panda, 'shoulderL', { x: -2.4, z: 0.5 }, 4.7, 0.3, EASE.body); rotBy(body, panda, 'shoulderR', { x: -2.4, z: -0.5 }, 4.7, 0.3, EASE.body);
+  squashTo(body, panda, 0.1, FALL_T + FALL_D, 0.1, 'power2.out'); squashTo(body, panda, 0, FALL_T + FALL_D + 0.1, 0.5, EASE.jiggle);   // thud
+  earFlop(body, panda, FALL_T + FALL_D, 1, 1.1);
+  // lies there, dazed, then the ears droop and he giggles
+  rotBy(body, panda, 'head', { y: 0.35, z: 0.2 }, 5.25, 0.5, 'sine.inOut'); rotBy(body, panda, 'head', { y: -0.3, z: -0.2 }, 5.75, 0.5, 'sine.inOut');
+  expr(body, panda, 'sleepy', 5.2, 0.4);
+  // pops back up (cartoon pivot about the feet) with a little hop and a big grin
+  body.to(root.rotation, { z: 0, duration: 0.55, ease: 'back.out(1.7)' }, 6.0);
+  body.to(root.position, { y: pm.y, duration: 0.55, ease: 'back.out(1.7)' }, 6.0);
+  rotBy(body, panda, 'head', { y: 0, z: 0 }, 6.25, 0.15, EASE.body);
+  for (const side of ['L', 'R']) rotBy(body, panda, 'shoulder' + side, { x: 0, z: 0 }, 6.05, 0.3, EASE.settle);
+  squashTo(body, panda, 0.06, 5.95, 0.15, 'power2.in'); squashTo(body, panda, 0, 6.1, 0.4, EASE.jiggle);
+  expr(body, panda, 'bigGrin', 6.05, 0.3);
+  expr(body, panda, 'proud', DRAW.reachStart - 0.05, 0.3);
   // B3: reach, grasp, pull up, hold
   arm(A.stow, DRAW.reachStart, DRAW.grasp - DRAW.reachStart, EASE.body);
   gripPose(panda, 'R', 'fist', 0.1, body, DRAW.grasp);
@@ -85,21 +120,24 @@ export function createOpening({ scene, camera, kitchen, panda, knife, title, mar
   arm(A.rel, tWind, tSnap - tWind + 0.04, 'power3.in', SNAP_TWIST);
   gripPose(panda, 'R', 'open', 0.08, body, tRel);
   rotBy(body, panda, 'spine', { x: 0.12 }, tWind, tSnap - tWind, EASE.body);
-  rotBy(body, panda, 'head', { y: 0.25 }, 4.2, 0.4, EASE.body);
+  rotBy(body, panda, 'head', { y: 0.25 }, 4.2 + S, 0.4, EASE.body);
+  expr(body, panda, 'bigGrin', tWind, 0.2);
   // B5: arm back to rest, deadpan shrug
-  arm(REST, 4.62, 0.5, EASE.settle, 0);
-  rotBy(body, panda, 'spine', { x: 0 }, 4.55, 0.5, EASE.settle);
-  gripPose(panda, 'R', 'relaxed', 0.3, body, 4.9);
-  expr(body, panda, 'deadpan', 5.0, 0.3);
-  rotBy(body, panda, 'head', { y: 0.1, z: 0.12 }, 5.05, 0.4, EASE.body);
+  arm(REST, 4.62 + S, 0.5, EASE.settle, 0);
+  rotBy(body, panda, 'spine', { x: 0 }, 4.55 + S, 0.5, EASE.settle);
+  gripPose(panda, 'R', 'relaxed', 0.3, body, 4.9 + S);
+  expr(body, panda, 'smile', 5.0 + S, 0.3);
+  rotBy(body, panda, 'head', { y: 0.1, z: 0.12 }, 5.05 + S, 0.4, EASE.body);
   for (const s of ['L', 'R']) { const k = s === 'L' ? 1 : -1;
-    moveBy(body, panda, 'shoulder' + s, { y: 0.085 }, 5.35, 0.3, EASE.body); moveBy(body, panda, 'shoulder' + s, { y: 0 }, 6.1, 0.5, EASE.settle);
-    rotBy(body, panda, 'shoulder' + s, { z: k * 0.35 }, 5.35, 0.35, EASE.body); rotBy(body, panda, 'shoulder' + s, { z: 0 }, 6.1, 0.5, EASE.settle); if (s === 'L') rotBy(body, panda, 'elbowL', { x: -0.7 }, 5.35, 0.35, EASE.body), rotBy(body, panda, 'elbowL', { x: 0 }, 6.1, 0.5, EASE.settle); }
+    moveBy(body, panda, 'shoulder' + s, { y: 0.085 }, 5.35 + S, 0.3, EASE.body); moveBy(body, panda, 'shoulder' + s, { y: 0 }, 6.1 + S, 0.5, EASE.settle);
+    rotBy(body, panda, 'shoulder' + s, { z: k * 0.35 }, 5.35 + S, 0.35, EASE.body); rotBy(body, panda, 'shoulder' + s, { z: 0 }, 6.1 + S, 0.5, EASE.settle); if (s === 'L') rotBy(body, panda, 'elbowL', { x: -0.7 }, 5.35 + S, 0.35, EASE.body), rotBy(body, panda, 'elbowL', { x: 0 }, 6.1 + S, 0.5, EASE.settle); }
   // B6: look at the camera
   const camEnd = V(marks.marks.M7_title_lift.position), yaw = Math.max(-0.7, Math.min(0.7, Math.atan2(camEnd.x - pm.x, camEnd.z - pm.z)));
-  rotBy(body, panda, 'head', { y: yaw, z: 0, x: -0.04 }, 7.5 - 0.0, 0.5, EASE.body);
-  body.to(panda.face.state, { lookX: 0.5, duration: 0.2 }, 7.4);
-  expr(body, panda, 'smug', 7.6, 0.3);
+  rotBy(body, panda, 'head', { y: yaw, z: 0, x: -0.04 }, 7.5 + S, 0.5, EASE.body);
+  body.to(panda.face.state, { lookX: 0.5, duration: 0.2 }, 7.4 + S);
+  expr(body, panda, 'bigGrin', 7.6 + S, 0.3);
+  body.to(root.position, { x: pm.x - 0.95, duration: 1.2, ease: 'sine.inOut' }, 8.5 + S - 0.0 - 0.9);   // happy sidestep out of the title's way
+  body.set(root.position, { x: pm.x }, 0);
 
   // ---------- camera: Hermite path through the knots ----------
   const knots = marks.path.map((k) => { const m = marks.marks[k.mark], p = V(m.position), l = V(m.lookAt); p.lerp(l, k.push ?? 0); return { t: k.t, v: [...p.toArray(), ...l.toArray(), m.fov], speed: k.speed }; });
@@ -154,8 +192,9 @@ export function createOpening({ scene, camera, kitchen, panda, knife, title, mar
     const kt = marks.knifeTrack; if (t > kt.from && t < kt.to) { knife.getWorldPosition(_k); _l.lerp(_k, kt.peakWeight * Math.sin(Math.PI * clamp01((t - kt.from) / (kt.to - kt.from)))); }
     camera.position.copy(_p); camera.fov = c[6]; camera.lookAt(_l);
     const tilt = (marks.tiltUp.deg * Math.PI) / 180 * sm(marks.tiltUp.from, marks.tiltUp.to, t); if (tilt) camera.rotateX(tilt);
+    { const u = t - 5.04; if (u > 0 && u < 0.7) { const a = 0.05 * Math.exp(-u * 7) * Math.sin(u * 46); camera.position.y += a; camera.position.x += a * 0.4; } }   // thud shake
     camera.updateProjectionMatrix();
-    title?.setTime(t); kitchen.setTime(t); kitchen.setBoardWobble?.(t - T_LAND, 1);
+    title?.setTime(t); kitchen.setTime(t);   // the board never moves: only the knife quivers
   }
   const master = gsap.timeline({ paused: true, onUpdate: () => apply(master.time()) });
   body.paused(false); master.add(body, 0); master.to({}, { duration: OPENING_END }, 0);

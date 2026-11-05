@@ -8,7 +8,7 @@ const REST_FACE = 'calmSmirk';
 
 /** Start a paused, deterministic timeline. Every rig pivot + the face are SET to their rest values at t=0, so the same
  *  progress always gives the same pose whatever came before (scrub-safe). opts: { loop, reset:false } */
-export function startTimeline(panda, { loop = false, reset = true } = {}) {
+export function startTimeline(panda, { loop = false, reset = true, restFace = REST_FACE } = {}) {
   const tl = gsap.timeline({ paused: true, repeat: loop ? -1 : 0, onUpdate: () => panda.face.apply() });
   tl.userData = { panda };
   if (reset) {
@@ -18,7 +18,7 @@ export function startTimeline(panda, { loop = false, reset = true } = {}) {
     }
     const b = panda.options.scale;
     tl.set(panda.root.scale, { x: b, y: b, z: b }, 0);
-    tl.set(panda.face.state, { ...resolve(REST_FACE) }, 0).set(panda.face.channels, { blink: 0, talk: 0, lookX: 0, lookY: 0, saccX: 0, saccY: 0 }, 0);
+    tl.set(panda.face.state, { ...resolve(restFace) }, 0).set(panda.face.channels, { blink: 0, talk: 0, lookX: 0, lookY: 0, saccX: 0, saccY: 0 }, 0);
   }
   panda.face.apply(); // set()s render immediately; re-derive face-driven transforms (brows, ears...) from the reset state
   return tl;
