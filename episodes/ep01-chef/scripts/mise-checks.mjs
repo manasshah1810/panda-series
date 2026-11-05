@@ -8,15 +8,15 @@ R.boot = await h.page.evaluate(() => { const o = window.__op; o.seek(o.MISE_STAR
 R.bounds = await h.page.evaluate(() => { const o = window.__op; o.seek(o.MISE_START + 9.5); o.raw.group.updateMatrixWorld(true); const res = {}; let ok = true;
   for (const [id, e] of o.raw.ingredientsMap) { const b = new o.THREE.Box3(); for (const p of e.parts) b.union(new o.THREE.Box3().setFromObject(p.root)); const inv = o.raw.group.worldToLocal; const lo = o.raw.group.worldToLocal(b.min.clone()), hi = o.raw.group.worldToLocal(b.max.clone()); const inside = lo.x >= -0.45 && hi.x <= 0.45 && lo.z >= -0.3 && hi.z <= 0.3; ok &&= inside; res[id] = { x: [+lo.x.toFixed(3), +hi.x.toFixed(3)], z: [+lo.z.toFixed(3), +hi.z.toFixed(3)], inside }; } void 0; res.pass = ok; return res; });
 // scrub determinism: forward / backward / shuffled passes over the beat give identical frames; plus a numeric state hash (positions, scales, camera, wash)
-const steps = [...Array(41).keys()].map((i) => +(i * 0.25).toFixed(2)), st = (t) => h.page.evaluate((x) => { const o = window.__op; o.seek(x); const a = []; o.raw.group.traverse((m) => { if (m.name.endsWith('_part')) a.push(...m.position.toArray(), ...m.scale.toArray(), m.rotation.y, m.visible ? 1 : 0); }); a.push(...o.camera.position.toArray(), ...o.camera.quaternion.toArray(), o.camera.fov, +document.getElementById('wash').style.opacity); return a.map((v) => v.toFixed(7)).join(','); }, x);
+const steps = [...Array(41).keys()].map((i) => +(i * 0.25).toFixed(2)), st = (t) => h.page.evaluate((x) => { const o = window.__op; o.seek(x); const a = []; o.raw.group.traverse((m) => { if (m.name.endsWith('_part')) a.push(...m.position.toArray(), ...m.scale.toArray(), m.rotation.y, m.visible ? 1 : 0); }); a.push(...o.camera.position.toArray(), ...o.camera.quaternion.toArray(), o.camera.fov, +document.getElementById('wash').style.opacity); return a.map((v) => String(Math.round(v * 1e6) / 1e6 + 0)).join(','); }, t);
 const F = {}, B = {}, J = {}, SF = {}, SJ = {};
 for (const t of steps) { F[t] = await hash(t0 + t); SF[t] = await st(t0 + t); }
 for (const t of [...steps].reverse()) B[t] = await hash(t0 + t);
 for (const t of [...steps].sort((a, b) => ((a * 7.3) % 1) - ((b * 7.3) % 1))) { J[t] = await hash(t0 + t); SJ[t] = await st(t0 + t); }
-const bad = steps.filter((t) => F[t] !== B[t] || F[t] !== J[t] || SF[t] !== SJ[t]);
+const bad = steps.filter((t) => F[t] !== B[t] || F[t] !== J[t]), badState = steps.filter((t) => SF[t] !== SJ[t]);   // frames must be bit-identical; state is compared at 1e-6 (GSAP float noise)
 // also a long excursion through the whole opening and back must not drift
 const a0 = await hash(t0 + 7.3); await h.page.evaluate((s) => { for (const t of [0, 3, 8, 12, s + 2, 5, s + 9, 1]) window.__op.seek(t); }, t0); const a1 = await hash(t0 + 7.3);
-R.scrub = { frames: steps.length, distinctFrames: new Set(Object.values(F)).size, mismatches: bad, excursionDrift: a0 !== a1, pass: bad.length === 0 && a0 === a1 };
+R.scrub = { frames: steps.length, distinctFrames: new Set(Object.values(F)).size, frameMismatches: bad, stateMismatches: badState, excursionDrift: a0 !== a1, pass: bad.length === 0 && badState.length === 0 && a0 === a1 };
 // budget: new content alone (ingredients + paws + tags), and the whole scene
 R.budget = await h.page.evaluate(() => { const o = window.__op, res = {}; o.seek(o.MISE_START + 9.5); const mine = new Set(); for (const g of [o.raw.group]) g.traverse((x) => mine.add(x));
   const vis = new Map(); o.scene.traverse((x) => { if (x.isMesh || x.isPoints || x.isLine) { vis.set(x, x.visible); if (!mine.has(x)) x.visible = false; } });

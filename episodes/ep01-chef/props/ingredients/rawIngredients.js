@@ -141,7 +141,7 @@ export function createRawIngredients({ quality = 'high', envMap = null } = {}) {
     ['shiitake_mushrooms', '03. Fresh Shiitake', [
       { body: buildShiitake(-0.5), side: 'L', rest: [-0.31, 0.2], yaw: 0.1, H: 0.4, sq: { sy: 0.85, sxz: 1.08 }, tumble: { axis: 'z', a0: 1.1 } },
       { body: buildShiitake(0.5), side: 'R', rest: [-0.17, 0.2], yaw: 0.1, H: 0.4, sq: { sy: 0.85, sxz: 1.08 }, tumble: { axis: 'z', a0: -1.1 }, delay: 0.06 }]],
-    ['baby_bok_choy', '04. Baby Bok Choy', [{ body: buildBokChoy(), side: 'R', rest: [0.25, 0.2], yaw: -0.25, H: 0.14, sq: { sy: 0.9, sxz: 1.05 }, slide: { dx: 0.07, dz: -0.02, dyaw: 0.55 } }]],
+    ['baby_bok_choy', '04. Baby Bok Choy', [{ body: buildBokChoy(), side: 'R', rest: [0.25, 0.17], yaw: -0.25, H: 0.14, sq: { sy: 0.9, sxz: 1.05 }, slide: { dx: 0.07, dz: -0.02, dyaw: 0.55 } }]],
     ['chili_oil_jar', '05. Sesame Chili Oil', [{ body: buildJar(), side: 'L', rest: [0.0, -0.14], yaw: 0.0, H: 0.45, sq: { sy: 0.94, sxz: 1.03 }, settle: 'thud' }]],
   ];
   const tagLocal = { bamboo_shoot: [-0.35, 0.3, -0.22], noodle_dough: [0.33, 0.3, -0.22], shiitake_mushrooms: [-0.25, 0.3, 0.38], baby_bok_choy: [0.28, 0.3, 0.38], chili_oil_jar: [0.0, 0.3, -0.38] };

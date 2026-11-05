@@ -1,0 +1,140 @@
+{
+ "boot": {
+  "glError": 0,
+  "programs": 33,
+  "consoleErrors": 0,
+  "pass": true
+ },
+ "bounds": {
+  "bamboo_shoot": {
+   "x": [
+    -0.447,
+    -0.092
+   ],
+   "z": [
+    -0.107,
+    0.101
+   ],
+   "inside": true
+  },
+  "noodle_dough": {
+   "x": [
+    0.238,
+    0.402
+   ],
+   "z": [
+    -0.082,
+    0.082
+   ],
+   "inside": true
+  },
+  "shiitake_mushrooms": {
+   "x": [
+    -0.398,
+    -0.082
+   ],
+   "z": [
+    0.118,
+    0.282
+   ],
+   "inside": true
+  },
+  "baby_bok_choy": {
+   "x": [
+    0.112,
+    0.388
+   ],
+   "z": [
+    0.096,
+    0.304
+   ],
+   "inside": false
+  },
+  "chili_oil_jar": {
+   "x": [
+    -0.059,
+    0.059
+   ],
+   "z": [
+    -0.202,
+    -0.078
+   ],
+   "inside": true
+  },
+  "pass": false
+ },
+ "scrub": {
+  "frames": 41,
+  "distinctFrames": 41,
+  "mismatches": [
+   0,
+   0.5,
+   0.75,
+   1,
+   1.25,
+   1.5,
+   2,
+   2.25,
+   2.5,
+   2.75,
+   3,
+   4.75,
+   5,
+   5.25,
+   5.5,
+   5.75,
+   6.25,
+   6.5,
+   6.75,
+   7,
+   7.25
+  ],
+  "excursionDrift": false,
+  "pass": false
+ },
+ "budget": {
+  "newContentWithShadowsAndGlassPass": {
+   "calls": 33,
+   "triangles": 17982
+  },
+  "newContentMainPass": {
+   "calls": 19,
+   "triangles": 8838
+  },
+  "own": {
+   "triangles": 9194,
+   "drawCalls": 20
+  },
+  "fullSceneAtLineup": {
+   "calls": 80,
+   "triangles": 67304
+  },
+  "pass": true
+ },
+ "vegetarian": {
+  "names": [
+   "bambooCore",
+   "bambooSheaths",
+   "doughBall",
+   "shiitakeCap",
+   "shiitakeStem",
+   "shiitakeCap",
+   "shiitakeStem",
+   "bokChoy",
+   "jarGlass",
+   "chiliOil",
+   "jarLid",
+   "",
+   "",
+   "",
+   "",
+   "tag",
+   "tag",
+   "tag",
+   "tag",
+   "tag"
+  ],
+  "pass": false
+ },
+ "pass": false
+}
