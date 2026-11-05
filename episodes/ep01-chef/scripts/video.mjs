@@ -1,6 +1,6 @@
-// Deterministic video: seek the master timeline frame by frame (opening + hero tease + mise en place + ASMR chop), screenshot, encode with ffmpeg.
+// Deterministic video: seek the master timeline frame by frame (opening + hero tease + mise en place + ASMR chop + broth build), screenshot, encode with ffmpeg.
 // Frames are split across WORKERS browser processes (each seeks absolute times, so the result is identical to a single pass).
-//   node scripts/video.mjs            -> review/video/ep01-full-up-to-chop.mp4   (WORKERS=3 Q=high by default)
+//   node scripts/video.mjs            -> review/video/ep01-full-with-broth.mp4   (WORKERS=3 Q=high by default)
 import { start } from './_h.mjs'; import { execSync, spawn } from 'node:child_process'; import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
 const out = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../review/video'), fr = path.join(out, 'frames'), FPS = 24, W = 1280, H = 720, WORKERS = +(process.env.WORKERS || 3);
 const slice = process.argv.indexOf('--slice');
@@ -12,5 +12,5 @@ if (slice > -1) {   // worker
 }
 fs.rmSync(fr, { recursive: true, force: true }); fs.mkdirSync(fr, { recursive: true });
 await Promise.all([...Array(WORKERS).keys()].map((i) => new Promise((res, rej) => { const p = spawn('node', [fileURLToPath(import.meta.url), '--slice', i, WORKERS], { stdio: 'inherit', env: process.env }); p.on('exit', (c) => (c === 0 ? res() : rej(new Error('worker ' + i + ' exit ' + c)))); })));
-execSync(`ffmpeg -y -loglevel error -framerate ${FPS} -i ${fr}/f%04d.png -c:v libx264 -pix_fmt yuv420p -crf 18 ${out}/ep01-full-up-to-chop.mp4`);
+execSync(`ffmpeg -y -loglevel error -framerate ${FPS} -i ${fr}/f%04d.png -c:v libx264 -pix_fmt yuv420p -crf 18 ${out}/ep01-full-with-broth.mp4`);
 fs.rmSync(fr, { recursive: true, force: true }); console.log('done');
