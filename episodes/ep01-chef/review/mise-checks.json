@@ -1,63 +1,140 @@
 {
  "boot": {
   "glError": 0,
-  "programs": 33,
+  "programs": 34,
   "consoleErrors": 0,
   "pass": true
  },
  "bounds": {
   "bamboo_shoot": {
    "x": [
-    -0.447,
-    -0.092
+    -0.19,
+    0.191
    ],
    "z": [
-    -0.107,
-    0.101
+    -0.096,
+    0.093
    ],
    "inside": true
   },
   "noodle_dough": {
    "x": [
-    0.238,
-    0.402
-   ],
-   "z": [
-    -0.082,
-    0.082
-   ],
-   "inside": true
-  },
-  "shiitake_mushrooms": {
-   "x": [
-    -0.398,
-    -0.082
-   ],
-   "z": [
     0.118,
     0.282
+   ],
+   "z": [
+    -0.282,
+    -0.118
    ],
    "inside": true
   },
   "baby_bok_choy": {
    "x": [
-    0.112,
-    0.388
+    -0.25,
+    0.05
    ],
    "z": [
-    0.066,
-    0.274
+    -0.291,
+    -0.089
+   ],
+   "inside": true
+  },
+  "shiitake_mushrooms": {
+   "x": [
+    -0.055,
+    0.255
+   ],
+   "z": [
+    0.112,
+    0.288
+   ],
+   "inside": true
+  },
+  "garlic_bulb": {
+   "x": [
+    -0.44,
+    -0.266
+   ],
+   "z": [
+    -0.275,
+    -0.103
    ],
    "inside": true
   },
   "chili_oil_jar": {
    "x": [
-    -0.059,
-    0.059
+    0.311,
+    0.429
    ],
    "z": [
-    -0.202,
-    -0.078
+    -0.262,
+    -0.138
+   ],
+   "inside": true
+  },
+  "ginger_root": {
+   "x": [
+    -0.432,
+    -0.168
+   ],
+   "z": [
+    -0.139,
+    0.059
+   ],
+   "inside": true
+  },
+  "corn_bowl": {
+   "x": [
+    0.312,
+    0.428
+   ],
+   "z": [
+    -0.098,
+    0.018
+   ],
+   "inside": true
+  },
+  "scallion_bundle": {
+   "x": [
+    -0.412,
+    -0.188
+   ],
+   "z": [
+    0.099,
+    0.162
+   ],
+   "inside": true
+  },
+  "sesame_bowl": {
+   "x": [
+    0.302,
+    0.418
+   ],
+   "z": [
+    0.032,
+    0.148
+   ],
+   "inside": true
+  },
+  "kombu_sheet": {
+   "x": [
+    -0.407,
+    -0.213
+   ],
+   "z": [
+    0.2,
+    0.28
+   ],
+   "inside": true
+  },
+  "shallot_chip_bowl": {
+   "x": [
+    0.302,
+    0.418
+   ],
+   "z": [
+    0.161,
+    0.279
    ],
    "inside": true
   },
@@ -73,40 +150,70 @@
  },
  "budget": {
   "newContentWithShadowsAndGlassPass": {
-   "calls": 42,
-   "triangles": 31138
+   "calls": 55,
+   "triangles": 32182
   },
   "newContentMainPass": {
-   "calls": 28,
-   "triangles": 18874
+   "calls": 49,
+   "triangles": 24070
   },
   "own": {
-   "triangles": 12314,
-   "drawCalls": 20
+   "triangles": 24070,
+   "drawCalls": 49
   },
   "fullSceneAtLineup": {
-   "calls": 117,
-   "triangles": 162528
+   "calls": 101,
+   "triangles": 113190
   },
-  "pass": true
+  "pass": true,
+  "passAllPasses": true
  },
  "vegetarian": {
   "names": [
    "bambooCore",
    "bambooSheaths",
+   "contactShadow",
    "doughBall",
-   "shiitakeCap",
-   "shiitakeStem",
-   "shiitakeCap",
-   "shiitakeStem",
+   "contactShadow",
    "bokChoy",
+   "contactShadow",
+   "shiitakeCaps",
+   "shiitakeStems",
+   "contactShadow",
+   "garlicLobes",
+   "garlicBulb",
+   "contactShadow",
    "jarGlass",
    "chiliOil",
    "jarLid",
+   "contactShadow",
+   "gingerRoot",
+   "contactShadow",
+   "bowlCeramic",
+   "cornKernels",
+   "contactShadow",
+   "scallionStalks",
+   "scallionTwine",
+   "contactShadow",
+   "bowlCeramic",
+   "sesameSeeds",
+   "contactShadow",
+   "kombuSheet",
+   "contactShadow",
+   "bowlCeramic",
+   "shallotChips",
+   "contactShadow",
    "pawPad",
    "pawSleeve",
    "pawPad",
    "pawSleeve",
+   "tag",
+   "tag",
+   "tag",
+   "tag",
+   "tag",
+   "tag",
+   "tag",
    "tag",
    "tag",
    "tag",

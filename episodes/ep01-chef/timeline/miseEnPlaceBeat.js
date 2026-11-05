@@ -6,17 +6,16 @@ import { DROP, INGREDIENT_ORDER } from '../props/ingredients/rawIngredients.js';
 
 /**
  * Beat 2 -- The Mise en Place Drop. Directly after the hero tease's steam wash: cream wash clears, camera settles from M12 to the locked
- * top-down M13 over the board, the Panda's paws drop five vegetarian ingredients (squash-and-stretch) with floating pill tags, then the
+ * top-down M13 over the board, the Panda's paws drop twelve vegetarian ingredients (squash-and-stretch, alternating paws) with minimal pill badges that fade in at each landing, then the
  * camera tilts 5 degrees as the paws hover over the bamboo shoot.
  *
  * One paused GSAP timeline of length MISE_DURATION seconds (timeline progress t = time / MISE_DURATION). The timeline only tweens plain
  * progress scalars; `apply()` (called from onUpdate) is a pure function of those scalars + timeline time, assigning ABSOLUTE values to the camera,
  * overlay, lights, ingredients, paws and tags. No physics, no accumulation, no Math.random: scrubbing in any order gives identical frames.
  */
-export const MISE_DURATION = 10;
-/** sub-beat ranges as fractions of the beat (spec). */
-export const MISE_RANGES = Object.freeze({ settle: [0, 0.15], drops: [[0.15, 0.3], [0.3, 0.45], [0.45, 0.6], [0.6, 0.75], [0.75, 0.9]], hold: [0.9, 1.0] });
-export const TAG_TEXT = Object.freeze({ bamboo_shoot: '01. FRESH BAMBOO', noodle_dough: '02. HAND-PULLED DOUGH', shiitake_mushrooms: '03. SHIITAKE', baby_bok_choy: '04. BABY BOK CHOY', chili_oil_jar: '05. SESAME CHILI OIL' });
+export const MISE_DURATION = 15;
+/** Beat schedule in seconds: camera settle, twelve drops (one every STRIDE s, alternating paws; each drop window is WINDOW s), prep hover, hold. */
+export const MISE_RANGES = Object.freeze({ settle: [0, 1.5], dropStart: 1.5, stride: 0.8, window: 1.9, prep: [12.2, 14.2] });
 export const WASH_COLOR = '#F5F0E8';
 export const PREP_TILT_DEG = 5;
 /** The spec marks are authored for a board centred at (0, 1.05, 1.1); they are translated by (board origin - this). */
@@ -26,7 +25,7 @@ const clamp01 = (x) => Math.min(1, Math.max(0, x));
 const E = (n) => gsap.parseEase(n);
 const E_CAM = E('power2.out'), E_PREP = E('sine.inOut'), E_IN = E('power2.in');
 const DIR = { L: new THREE.Vector3(-0.5, 0, -0.866).normalize(), R: new THREE.Vector3(0.5, 0, -0.866).normalize() };   // outward arm axis: arms enter from the top edge, fanning out to the flanks (never from the bottom corners)
-const PAW_CLEAR = 0.12, RETREAT_END = 0.8;
+const PAW_SCALE = 0.85, PAW_CLEAR = 0.11, RETREAT_END = 0.8;
 
 /**
  * Two chubby panda paws (panda-kit proportions): soft charcoal mitten paw (#1A1A1F) with a rounded thumb pad and toe bumps, a thick forearm
@@ -52,9 +51,10 @@ export function createPandaPaws() {
     pawG.push(xf(new THREE.CapsuleGeometry(0.13, 0.1, 6, 20), [0, 0, 0.1], [Math.PI / 2, 0, 0]));   // forearm / wrist
     const root = new THREE.Group(); root.name = 'paw' + side; root.rotation.order = 'YXZ';
     const a = new THREE.Mesh(mergeGeometries(pawG), felt), b = new THREE.Mesh(sleeveGeo(), cloth); a.name = 'pawPad'; b.name = 'pawSleeve';
-    for (const m of [a, b]) { m.castShadow = true; m.receiveShadow = true; disposables.push(m.geometry); root.add(m); }
+    for (const m of [a, b]) { m.castShadow = m === a; m.receiveShadow = true;   // only the paw itself casts (sleeves stay out of the shadow pass: budget)
+      disposables.push(m.geometry); root.add(m); }
     pawG.forEach((g) => g.dispose());
-    root.visible = false; group.add(root); paws[side] = { root };
+    root.scale.setScalar(PAW_SCALE); root.visible = false; group.add(root); paws[side] = { root };
   }
   return { group, left: paws.L, right: paws.R, dispose() { disposables.forEach((d) => d.dispose?.()); group.removeFromParent(); } };
 }
@@ -67,8 +67,8 @@ function makeTagMesh(text) {
   let size = 92; const face = (s) => `800 ${s}px "Trebuchet MS","DejaVu Sans","Helvetica Neue",Arial,sans-serif`; g.font = face(size); while (g.measureText(text).width > W - 190 && size > 30) { size -= 3; g.font = face(size); }
   g.fillStyle = '#1A1A1F'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, W / 2, 112);
   const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
-  const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false, toneMapped: false });
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.46, 0.115), mat); mesh.rotation.x = -Math.PI / 2; mesh.renderOrder = 20; mesh.name = 'tag'; mesh.visible = false; mesh.scale.setScalar(0.0001);
+  const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, depthTest: false, depthWrite: false, toneMapped: false });
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.28, 0.07), mat); mesh.rotation.x = -Math.PI / 2; mesh.renderOrder = 20; mesh.name = 'tag'; mesh.visible = false; mesh.scale.setScalar(0.0001);
   mesh.userData.dispose = () => { tex.dispose(); mat.dispose(); mesh.geometry.dispose(); };
   return mesh;
 }
@@ -93,10 +93,10 @@ export function createMiseEnPlaceTimeline({ cameraRig, rawIngredients, pandaPaws
 
   // --- tags + paws live in the board frame
   const ui = uiContainer ?? frame; if (pandaPaws.group.parent !== frame) frame.add(pandaPaws.group);
-  const tags = INGREDIENT_ORDER.map((id) => { const m = makeTagMesh(TAG_TEXT[id]); m.position.copy(rawIngredients.ingredientsMap.get(id).tag); ui.add(m); return m; });
   const ing = (id) => rawIngredients.ingredientsMap.get(id);
-  const assign = { L: [ing('bamboo_shoot').parts[0], ing('shiitake_mushrooms').parts[0], ing('chili_oil_jar').parts[0]], R: [ing('noodle_dough').parts[0], ing('shiitake_mushrooms').parts[1], ing('baby_bok_choy').parts[0]] };
-  const bamboo = ing('bamboo_shoot').parts[0], hoverPrep = { L: new THREE.Vector3(bamboo.rest[0] - 0.2, 0.25, bamboo.rest[1] - 0.08), R: new THREE.Vector3(bamboo.rest[0] + 0.2, 0.25, bamboo.rest[1] + 0.02) };
+  const tags = INGREDIENT_ORDER.map((id) => { const m = makeTagMesh(ing(id).label); m.position.copy(ing(id).tag); m.position.y = 0.02; ui.add(m); return m; });
+  const assign = { L: [], R: [] }; for (const id of INGREDIENT_ORDER) for (const part of ing(id).parts) assign[part.side].push(part);
+  const bamboo = ing('bamboo_shoot').parts[0], hoverPrep = { L: new THREE.Vector3(bamboo.rest[0] - 0.19, 0.16, bamboo.rest[1] - 0.13), R: new THREE.Vector3(bamboo.rest[0] + 0.19, 0.16, bamboo.rest[1] - 0.13) };
   const IDLE = { L: hoverPrep.L.clone().addScaledVector(DIR.L, 1.5).add(new THREE.Vector3(0, 0.4, 0)), R: hoverPrep.R.clone().addScaledVector(DIR.R, 1.5).add(new THREE.Vector3(0, 0.4, 0)) };
 
   // --- lights (continue the hero beat's 35% fill dim and warm spot back to normal as the wash clears)
@@ -106,15 +106,14 @@ export function createMiseEnPlaceTimeline({ cameraRig, rawIngredients, pandaPaws
   // --- progress scalars: the only state the timeline owns
   const s = { wash: 1, cam: 0, light: 0, prep: 0, shake: 0 }; INGREDIENT_ORDER.forEach((_, i) => { s['d' + i] = 0; s['tg' + i] = 0; });
   const tl = gsap.timeline({ paused: true, defaults: { overwrite: false } });
-  const ft = (k, from, to, [a, b], ease) => tl.fromTo(s, { [k]: from }, { [k]: to, duration: (b - a) * D, ease, immediateRender: false }, a * D);
-  ft('wash', 1, 0, MISE_RANGES.settle, 'power1.inOut'); ft('cam', 0, 1, MISE_RANGES.settle, 'none'); ft('light', 0, 1, MISE_RANGES.settle, 'sine.inOut');
+  const ft = (k, from, to, a, b, ease) => tl.fromTo(s, { [k]: from }, { [k]: to, duration: b - a, ease, immediateRender: false }, a);
+  const R = MISE_RANGES; ft('wash', 1, 0, R.settle[0], R.settle[1], 'power1.inOut'); ft('cam', 0, 1, R.settle[0], R.settle[1], 'none'); ft('light', 0, 1, R.settle[0], R.settle[1], 'sine.inOut');
   INGREDIENT_ORDER.forEach((id, i) => {
-    const [a, b] = MISE_RANGES.drops[i]; ft('d' + i, 0, 1, [a, b], 'none');
-    const impact = a + (b - a) * (DROP.impact + (id === 'shiitake_mushrooms' ? 0.03 : 0)), pop = 0.6 / D;
-    ft('tg' + i, 0, 1, [impact, impact + pop], 'elastic.out(1,0.5)');
-    if (id === 'chili_oil_jar') ft('shake', 0, 1, [impact, impact + 0.45 / D], 'none');
+    const a = R.dropStart + R.stride * i, b = a + R.window; ft('d' + i, 0, 1, a, b, 'none');
+    const impact = a + R.window * DROP.impact; ft('tg' + i, 0, 1, impact, impact + 0.45, 'power2.out');
+    if (id === 'chili_oil_jar') ft('shake', 0, 1, impact, impact + 0.45, 'none');
   });
-  ft('prep', 0, 1, MISE_RANGES.hold, 'none');
+  ft('prep', 0, 1, R.prep[0], R.prep[1], 'none');
   tl.to({}, { duration: D - tl.duration() }, tl.duration());
 
   const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _l = new THREE.Vector3();
@@ -144,11 +143,11 @@ export function createMiseEnPlaceTimeline({ cameraRig, rawIngredients, pandaPaws
       const paw = (side === 'L' ? pandaPaws.left : pandaPaws.right).root; let tgt = pawTarget(side); const idle = tgt === null;
       if (idle) tgt = _a.copy(IDLE[side]);
       const k = E_PREP(s.prep); _b.copy(tgt);
-      if (k > 0) { const bob = 0.012 * Math.sin(((t - MISE_RANGES.hold[0] * D) / 1.1) * Math.PI * 2) * k; _l.copy(hoverPrep[side]); _l.y += bob; _b.lerp(_l, k); }
+      if (k > 0) { const bob = 0.012 * Math.sin(((t - MISE_RANGES.prep[0]) / 1.1) * Math.PI * 2) * k; _l.copy(hoverPrep[side]); _l.y += bob; _b.lerp(_l, k); }
       paw.position.copy(_b); paw.rotation.set(-0.2, Math.atan2(DIR[side].x, DIR[side].z), 0); paw.visible = !idle || k > 0;
     }
     // tags
-    tags.forEach((m, i) => { const v = s['tg' + i]; m.visible = v > 0.001; m.scale.setScalar(Math.max(0.0001, v)); });
+    tags.forEach((m, i) => { const v = s['tg' + i]; m.visible = v > 0.001; m.material.opacity = v; m.scale.setScalar(0.9 + 0.1 * v); });
     // camera: M12 -> M13 settle, jar-thud shake, then a 5-degree tilt
     const c = E_CAM(s.cam); camera.up.set(0, 0, -1); camera.position.lerpVectors(P12.p, P13.p, c); _l.lerpVectors(P12.l, P13.l, c); camera.fov = P12.fov + (P13.fov - P12.fov) * c;
     const u = s.shake * 0.45, sh = s.shake > 0 && s.shake < 1 ? 0.012 * Math.exp(-9 * u) * Math.sin(70 * u) : 0; camera.position.y += sh; camera.position.x += sh * 0.4;
