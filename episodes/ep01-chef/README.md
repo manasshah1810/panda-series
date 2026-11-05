@@ -45,3 +45,6 @@ One master GSAP timeline, scrub-safe: `timeline/openingTimeline.js` (`createOpen
 - Dust motes are pushed away by Panda at the stumble, thud and pop-up (shader uniform, pure function of time).
 - Bamboo title has a dark outline; end frame re-framed; back counters darkened (separation passes at 4 of 6 sample times).
 - Open: draw calls ~141 incl. shadows (target 120); knife handle covers the "i" of "if" in the end frame; real-GPU fps unmeasured.
+
+## Beat 1 — The Hero Tease
+`timeline/heroTeaseBeat.js` (`createHeroTeaseTimeline`) whips (0.4 s) from the Panda to the vegetarian Bamboo-Shoot Ramen from `props/ramen-bowl/ramenBowl.js`, orbits (1.2 s, spotlight up, background dims 35%) and dives into the steam (0.6 s, wash to #F5F0E8). Camera marks M7–M11 live in `kitchen/src/cameraMarks.js` and are retargeted at runtime onto the mounted bowl. Checks: `node scripts/hero-checks.mjs`; stills: `node scripts/hero-shots.mjs` (output in `review/hero/`).

@@ -2,7 +2,9 @@
 <style>html,body{margin:0;height:100%;background:#1b1917;overflow:hidden;font:600 13px system-ui,sans-serif;color:#f1e6d4}canvas{display:block}
 #loading{position:fixed;inset:0;display:grid;place-items:center;letter-spacing:.08em}
 #bar{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);width:min(560px,92vw);display:none;align-items:center;gap:12px;padding:8px 14px;border-radius:999px;background:rgba(27,25,23,.72);backdrop-filter:blur(6px)}
+#wash{position:fixed;inset:0;opacity:0;background:#F5F0E8;pointer-events:none}
 #pp{all:unset;cursor:pointer;width:22px;text-align:center}#tl{flex:1;accent-color:#e9c48a}#cur{width:78px;text-align:right;font-variant-numeric:tabular-nums}</style></head>
 <body><div id="loading">Chopping the scene together…</div>
+<div id="wash"></div>
 <div id="bar"><button id="pp" aria-label="Play or pause">❚❚</button><input id="tl" type="range" min="0" value="0" aria-label="Timeline"><span id="cur"></span></div>
 <script type="module" src="./opening.js"></script></body></html>

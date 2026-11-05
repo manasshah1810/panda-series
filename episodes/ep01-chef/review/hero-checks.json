@@ -1,0 +1,94 @@
+{
+ "boot": {
+  "glError": 0,
+  "programs": 36,
+  "consoleErrors": [],
+  "pass": true
+ },
+ "anchor": {
+  "anchor": [
+   2.75,
+   1,
+   1.3
+  ],
+  "bowl": [
+   2.75,
+   1,
+   1.3
+  ],
+  "err": 0,
+  "islandTopY": 1,
+  "parentIsAnchor": true,
+  "pass": true
+ },
+ "scrub": {
+  "frames": 57,
+  "distinctFrames": 49,
+  "mismatches": [],
+  "pass": true
+ },
+ "bowlPure": {
+  "same": true,
+  "samples": [
+   "0|0.62",
+   "0.3|0.62",
+   "1|1.22",
+   "0.3|0.62",
+   "0|0.62",
+   "0.77|0.9100016460905349",
+   "0.77|0.9100016460905349"
+  ],
+  "pass": true
+ },
+ "budget": {
+  "bowlOnly": {
+   "calls": 12,
+   "triangles": 20548,
+   "own": {
+    "triangles": 17996,
+    "drawCalls": 11
+   }
+  },
+  "bowlOnlyMainPass": {
+   "calls": 11,
+   "triangles": 17996
+  },
+  "fullScene": {
+   "hero0": {
+    "calls": 145,
+    "triangles": 185380
+   },
+   "hero1": {
+    "calls": 84,
+    "triangles": 123980
+   },
+   "hero2": {
+    "calls": 87,
+    "triangles": 123960
+   },
+   "openingT5": {
+    "calls": 143,
+    "triangles": 184648
+   }
+  },
+  "pass": true
+ },
+ "vegetarian": {
+  "parts": [
+   "bowlBody",
+   "broth",
+   "noodles",
+   "menma",
+   "shiitake",
+   "bokChoyStems",
+   "bokChoyLeaves",
+   "cornBeads",
+   "scallionRings",
+   "nori",
+   "steam"
+  ],
+  "forbidden": [],
+  "pass": true
+ },
+ "pass": true
+}

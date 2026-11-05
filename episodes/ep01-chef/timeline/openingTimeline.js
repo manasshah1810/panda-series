@@ -216,22 +216,27 @@ export function createOpening({ scene, camera, kitchen, panda, knife, title, mar
   }
 
   // ---------- master ----------
+  let heroOn = false;   // when a hero-tease timeline is attached it owns the camera after OPENING_END
   function apply(t) {
     updateKnife(t);
+    if (!(heroOn && t > OPENING_END)) {
     const c = camAt(t); _p.set(c[0], c[1], c[2]); _l.set(c[3], c[4], c[5]);
     const kt = marks.knifeTrack; if (t > kt.from && t < kt.to) { knife.getWorldPosition(_k); _l.lerp(_k, kt.peakWeight * Math.sin(Math.PI * clamp01((t - kt.from) / (kt.to - kt.from)))); }
     camera.position.copy(_p); camera.fov = c[6]; camera.lookAt(_l);
     const tilt = (marks.tiltUp.deg * Math.PI) / 180 * sm(marks.tiltUp.from, marks.tiltUp.to, t); if (tilt) camera.rotateX(tilt);
     { const u = t - 5.04; if (u > 0 && u < 0.7) { const a = 0.05 * Math.exp(-u * 7) * Math.sin(u * 46); camera.position.y += a; camera.position.x += a * 0.4; } }   // thud shake
     camera.updateProjectionMatrix();
-    secondaryFx(t); title?.setTime(t); kitchen.setTime(t);   // the board never moves: only the knife quivers
+    }
+    secondaryFx(t); title?.setTime(Math.min(t, OPENING_END)); kitchen.setTime(t);   // the board never moves: only the knife quivers
   }
   const master = gsap.timeline({ paused: true, onUpdate: () => apply(master.time()) });
   body.paused(false); master.add(body, 0); master.to({}, { duration: OPENING_END }, 0);
   master.progress(1).progress(0);
   return {
     master, apply, camAt, knife, solved: A, targets: T, flight,
-    seek(t) { master.time(Math.min(OPENING_END, Math.max(0, t)), false); apply(master.time()); },
+    /** Add the hero-tease timeline (heroTeaseBeat.js) right after the opening; the master then runs OPENING_END + hero duration. */
+    attachHero(heroTl) { heroOn = true; heroTl.paused(false); master.add(heroTl, OPENING_END); return master; },
+    seek(t) { master.time(Math.min(master.duration(), Math.max(0, t)), false); apply(master.time()); },
     knifeTip() { return new THREE.Vector3(0, KNIFE.tipY, 0).applyMatrix4(knife.matrixWorld); },
   };
 }

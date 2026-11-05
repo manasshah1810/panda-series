@@ -5,6 +5,9 @@ import chefOutfit from '../outfit/chefOutfit.js';
 import { createKnife } from '../props/knife/knife.js';
 import { createWoodenTitle } from '../title/woodenTitle.js';
 import { createOpening } from '../timeline/openingTimeline.js';
+import { OPENING_END } from '../timeline/beats.js';
+import { createRamenBowl } from '../props/ramen-bowl/ramenBowl.js';
+import { createHeroTeaseTimeline, createHeroSpot, HERO_TIMES } from '../timeline/heroTeaseBeat.js';
 import marks from '../review/openingMarks.json';
 
 const q = new URLSearchParams(location.search);
@@ -28,12 +31,30 @@ for (const l of kitchen.lights?.strips ?? []) l.visible = false;   // two faint 
 const env = scene.environment ?? null;
 const knife = createKnife({ envMap: env }); const title = createWoodenTitle({ envMap: env }); scene.add(title.group);
 const op = createOpening({ scene, camera, kitchen, panda, knife, title, marks, renderer });
+// ---- Beat 1: the hero tease (vegetarian Bamboo-Shoot Ramen on the island anchor, whip -> orbit -> steam plunge) ----
+const ramen = createRamenBowl({ quality: q.get('quality') || 'medium', scale: 1, envMap: kitchen._state?.env?.texture ?? null });
+kitchen.anchors.bowlPlacementPoint.add(ramen.group);
+const heroSpot = createHeroSpot(kitchen.anchors.bowlPlacementPoint.getWorldPosition(new THREE.Vector3())); scene.add(heroSpot, heroSpot.target);
+const wash = document.getElementById('wash');
+const endPose = op.camAt(OPENING_END);
+const heroTl = createHeroTeaseTimeline({
+  cameraRig: { camera, startPose: { position: endPose.slice(0, 3), lookAt: endPose.slice(3, 6), fov: endPose[6], tilt: (marks.tiltUp.deg * Math.PI) / 180 } },
+  ramenBowl: ramen, kitchenLighting: { lights: kitchen.lights, spot: heroSpot }, overlayElement: wash, hideOnReveal: [title.group],
+});
+op.attachHero(heroTl);
 const render = () => renderer.render(scene, camera);
 window.__op = {
-  THREE, op, scene, camera, renderer, kitchen, panda, knife, title,
+  THREE, op, scene, camera, renderer, kitchen, panda, knife, title, ramen, heroTl, heroSpot, HERO_TIMES, OPENING_END,
   setSize(w, h) { renderer.setSize(w, h); camera.aspect = w / h; },
   seek(t) { camera.aspect = renderer.domElement.width / renderer.domElement.height; op.seek(t); render(); },
-  frame(t) { window.__op.seek(t); return renderer.domElement.toDataURL('image/png'); },
+  frame(t) { window.__op.seek(t); return window.__op.snap(); },
+  /** canvas -> png, with the DOM steam-wash overlay composited on top (it is a DOM element in the player) */
+  snap() { const w = heroTl.hero.wash, cv = renderer.domElement; if (!w) return cv.toDataURL('image/png'); const c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height; const g = c.getContext('2d'); g.drawImage(cv, 0, 0); g.fillStyle = 'rgba(245,240,232,' + w + ')'; g.fillRect(0, 0, c.width, c.height); return c.toDataURL('image/png'); },
+  /** hero-beat time (seconds from the start of the hero beat) -> data URL; optional free camera override for diagnostic stills */
+  hero(local, cam) { const w = window.__op; camera.aspect = renderer.domElement.width / renderer.domElement.height; op.seek(OPENING_END - 1); op.seek(OPENING_END + local);   // (re-seek so a previous free-camera override is always replaced)
+    if (cam) { camera.up.set(...(cam.up ?? [0, 1, 0])); camera.position.set(...cam.position); camera.fov = cam.fov; camera.lookAt(...cam.lookAt); camera.updateProjectionMatrix(); }
+    const hid = (cam?.hide ?? []).map((n) => ramen.group.getObjectByName(n)).filter(Boolean); hid.forEach((o) => { o.visible = false; });
+    render(); const png = w.snap(); hid.forEach((o) => { o.visible = true; }); return png; },
   stats() { return renderer.info.render; },
   info() { render(); return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles }; },
 };
