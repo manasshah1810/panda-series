@@ -22,8 +22,16 @@ export const CAMERA_MARKS = {
   M14_macro_chop_side: { position: [0.6, 1.08, 1.2], lookAt: [0.0, 1.05, 1.1], target: [0.0, 1.05, 1.1], fov: 28, note: 'Low, tight macro side-angle on the bamboo shoot and the knife (whip-down lands here)', boardRelative: true },
   // ---- Beat 3 finale: medium close-up of the Panda for the knife flourish + wink. Authored in the Panda's own frame (root at the origin, facing +z); asmrChopBeat.js maps it onto the chop stance (rotated to face the lens).
   M15_panda_wink_closeup: { position: [-0.25, 1.5, 2.4], lookAt: [-0.3, 1.22, 0.4], target: [-0.3, 1.22, 0.4], fov: 34, note: 'Camera drifts right and up to frame the Panda: knife spin beside his head, then the wink', pandaRelative: true },
+  // ---- Beat 4: the broth build. Authored for a stockpot whose broth surface centre is (-1.0, 1.1, 0.4) (MARK_POT_ORIGIN); brothBuildBeat.js translates them onto the real pot. `target` mirrors `lookAt`.
+  M15_stove_approach: { position: [-0.8, 1.15, 1.2], lookAt: [-1.0, 1.1, 0.4], target: [-1.0, 1.1, 0.4], fov: 35, note: 'Whip-pan lands: low, tight approach to the boiling stockpot', potRelative: true },
+  M16_topdown_pot: { position: [-1.0, 2.5, 0.4], lookAt: [-1.0, 1.1, 0.4], target: [-1.0, 1.1, 0.4], fov: 32, note: 'Locked top-down over the pot for the ingredient drops (screen-up = away from the lens, see MARK_TOPDOWN_UP)', potRelative: true },
+  M17_steam_wipe: { position: [-1.0, 1.3, 0.4], lookAt: [-1.0, 1.1, 0.4], target: [-1.0, 1.1, 0.4], fov: 60, note: 'Dive straight down into the steam burst (screen wipes to #F5F0E8)', potRelative: true },
 };
+/** The Beat-4 marks are authored around this broth-surface centre; the beat shifts them by (real broth centre - this). */
+export const MARK_POT_ORIGIN = Object.freeze([-1.0, 1.1, 0.4]);
+/** Looking straight down has no defined 'up': the top-down marks use world -z (towards the back wall) as screen-up. */
+export const MARK_TOPDOWN_UP = Object.freeze([0, 0, -1]);
 /** Which way the Panda faces for each mark during the opening (rotation about Y). */
-export const MARK_PANDA_ROT_Y = { M1_establish_back: Math.PI, M2_dolly_in_apron: Math.PI, M3_flip_tilt_up: Math.PI, M4_turn_front_low: 0, M5_throw_side: 0, M6_macro_board: 0, M7_title_lift: 0, M8_fourth_wall: 0, M7_title_end: 0, M8_whip_transit: 0, M9_hero_bowl_orbit_start: 0, M10_hero_bowl_orbit_end: 0, M11_steam_plunge: 0, M12_topdown_board_entry: 0, M13_topdown_board_lock: 0, M14_macro_chop_side: 0, M15_panda_wink_closeup: 0 };
+export const MARK_PANDA_ROT_Y = { M1_establish_back: Math.PI, M2_dolly_in_apron: Math.PI, M3_flip_tilt_up: Math.PI, M4_turn_front_low: 0, M5_throw_side: 0, M6_macro_board: 0, M7_title_lift: 0, M8_fourth_wall: 0, M7_title_end: 0, M8_whip_transit: 0, M9_hero_bowl_orbit_start: 0, M10_hero_bowl_orbit_end: 0, M11_steam_plunge: 0, M12_topdown_board_entry: 0, M13_topdown_board_lock: 0, M14_macro_chop_side: 0, M15_panda_wink_closeup: 0, M15_stove_approach: 0, M16_topdown_pot: 0, M17_steam_wipe: 0 };
 /** Board-relative nudge applied (to position AND target, so the view direction is unchanged) on top of M14 by the chop beat: centres the log's axis (y) and the slice fan (z) in frame. M14 itself stays exactly as specified. */
 export const M14_FRAMING_NUDGE = Object.freeze([0, 0.075, 0.03]);

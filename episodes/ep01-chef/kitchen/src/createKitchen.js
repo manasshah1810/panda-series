@@ -23,10 +23,11 @@ import { createDust } from './fx/dust.js';
 
 /**
  * Create the Episode-1 kitchen set.
- * @param {{quality?:'high'|'medium'|'low', mood?:'morning'|'warmEvening', seed?:number, renderer?:THREE.WebGLRenderer, stage?:1|2|3|4}} [opts]
+ * @param {{quality?:'high'|'medium'|'low', mood?:'morning'|'warmEvening', seed?:number, renderer?:THREE.WebGLRenderer, stage?:1|2|3|4, wok?:boolean}} [opts]
+ *   wok: false leaves the front-right burner (anchor `potPlacementPoint`) free for the Beat-4 stockpot
  *   renderer: needed once for PMREM reflections (or call kitchen.setRenderer(r) later). stage: review option (1 greybox .. 4 full, default 4).
  */
-export function createKitchen({ quality = 'high', mood = 'morning', seed = 1, renderer = null, stage = 4 } = {}) {
+export function createKitchen({ quality = 'high', mood = 'morning', seed = 1, renderer = null, stage = 4, wok = true } = {}) {
   const cfg = KITCHEN_CONFIG, root = new THREE.Group(); root.name = 'kitchen';
   const anchors = buildAnchors(cfg, root);
   const props = { cuttingBoard: new THREE.Group(), tap: new THREE.Group(), hangingPans: new THREE.Group(), plants: new THREE.Group() };
@@ -44,7 +45,7 @@ export function createKitchen({ quality = 'high', mood = 'morning', seed = 1, re
   function build() {
     clearContent();
     const T = cfg.tiers[state.quality]; state.mats = createMaterials(cfg, state.quality, state.env, stage);
-    const ctx = { cfg, T, tier: state.quality, B: new Batch(), m: state.mats.m, rng: mulberry32(state.seed), colliders: [], placements: [], world: {}, anim: [], fx: {},
+    const ctx = { cfg, T, wok, tier: state.quality, B: new Batch(), m: state.mats.m, rng: mulberry32(state.seed), colliders: [], placements: [], world: {}, anim: [], fx: {},
       collide(name, [x0, y0, z0, x1, y1, z1]) { this.colliders.push({ name, box: new THREE.Box3(new THREE.Vector3(x0, y0, z0), new THREE.Vector3(x1, y1, z1)) }); } };
     state.ctx = ctx; state.content = new THREE.Group(); state.content.name = 'static'; root.add(state.content);
     buildRoom(ctx); buildFloor(ctx); buildCeiling(ctx); buildWindow(ctx); buildBacksplash(ctx); buildHood(ctx); buildBackCounter(ctx); buildIsland(ctx); buildShelving(ctx);

@@ -13,6 +13,7 @@ import { createMiseEnPlaceTimeline, createPandaPaws, MISE_DURATION, MARK_BOARD_O
 import { createSliceableBamboo } from '../props/ingredients/sliceableBamboo.js';
 import { createAsmrChopTimeline, CHOP_TIMES } from '../timeline/asmrChopBeat.js';
 import { CAMERA_MARKS, M14_FRAMING_NUDGE } from '../kitchen/src/cameraMarks.js';
+import { createStockpot } from '../props/stove/stockpot.js';
 import marks from '../review/openingMarks.json';
 
 const q = new URLSearchParams(location.search);
@@ -24,7 +25,7 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = 
 document.body.appendChild(renderer.domElement);
 const scene = new THREE.Scene(); scene.background = new THREE.Color('#0d0c0b');
 const camera = new THREE.PerspectiveCamera(36, innerWidth / innerHeight, 0.05, 60);
-const kitchen = createKitchen({ quality: q.get('quality') || 'medium', mood: 'morning', stage: 4, renderer });
+const kitchen = createKitchen({ quality: q.get('quality') || 'medium', mood: 'morning', stage: 4, renderer, wok: false });
 scene.add(kitchen.root); kitchen.setLightsOn(1);
 scene.fog = new THREE.FogExp2('#9a9084', 0);   // density 0 until the chop beat's depth-of-field haze (created up front so no material ever recompiles mid-film)
 const panda = createPanda({ quality: q.get('quality') || 'medium', style: 'softClay', pose: 'neutralStand', receiveShadow: true, castShadow: true });
@@ -34,6 +35,9 @@ for (const l of kitchen.lights?.strips ?? []) l.visible = false;   // two faint 
 { const bb = new THREE.Box3(), sz = new THREE.Vector3(); kitchen.root.traverse((o) => { if (!o.isMesh || !o.castShadow) return; if (o.isInstancedMesh) { o.castShadow = false; return; } bb.setFromObject(o).getSize(sz); if (Math.max(sz.x, sz.y, sz.z) < 1.5) o.castShadow = false; }); }
 // back counters sit behind Panda in the opening shots: a touch darker so his white fur separates from them
 { const bb = new THREE.Box3(), c = new THREE.Vector3(); kitchen.root.traverse((o) => { if (!o.isMesh || o.isInstancedMesh) return; bb.setFromObject(o); bb.getCenter(c); if (bb.max.z < 0.3 && c.y < 1.2 && o.material?.color) { o.material = o.material.clone(); o.material.color.multiplyScalar(0.72); } }); }
+// ---- Beat 4 prop: the stockpot sits on the front-right burner (anchor potPlacementPoint; the cast-iron wok that used to be there is left out via `wok: false`)
+const pot = createStockpot({ quality: q.get('quality') || 'medium', envMap: kitchen._state?.env?.texture ?? null });
+kitchen.anchors.potPlacementPoint.add(pot.group); pot.group.position.y = 0.014;   // the grate bars top out 14 mm above the anchor
 const env = scene.environment ?? null;
 const knife = createKnife({ envMap: env });
 { const kenv = kitchen._state?.env?.texture ?? null; if (kenv) knife.traverse((o) => { if (o.isMesh) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => { if (m.metalness > 0.3) { m.envMap = kenv; m.envMapIntensity = 0.7; } }); }); }   // steel needs something to reflect in the macro shots
@@ -66,7 +70,7 @@ const chopTl = createAsmrChopTimeline({ cameraRig: { camera }, sliceable, rawIng
 op.releaseKnifeAfter(CHOP_START); op.attachBeat(chopTl, CHOP_START);
 { const gv = sliceable.group.visible, fv = chopTl.chop.flecks.mesh.visible; sliceable.group.visible = true; chopTl.chop.flecks.mesh.visible = true; renderer.compile(scene, camera); sliceable.group.visible = gv; chopTl.chop.flecks.mesh.visible = fv; }   // warm the shaders so the first chop never hitches
 window.__op = {
-  THREE, op, scene, camera, renderer, kitchen, panda, knife, title, ramen, heroTl, heroSpot, HERO_TIMES, OPENING_END, raw, paws, miseTl, MISE_START: OPENING_END + HERO_TIMES.duration, MISE_DURATION, chopTl, CHOP_START, CHOP_DURATION: CHOP_TIMES.duration, vignette,
+  THREE, op, pot, scene, camera, renderer, kitchen, panda, knife, title, ramen, heroTl, heroSpot, HERO_TIMES, OPENING_END, raw, paws, miseTl, MISE_START: OPENING_END + HERO_TIMES.duration, MISE_DURATION, chopTl, CHOP_START, CHOP_DURATION: CHOP_TIMES.duration, vignette,
   setSize(w, h) { renderer.setSize(w, h); camera.aspect = w / h; },
   seek(t) { camera.aspect = renderer.domElement.width / renderer.domElement.height; op.seek(t); render(); },
   frame(t) { window.__op.seek(t); return window.__op.snap(); },

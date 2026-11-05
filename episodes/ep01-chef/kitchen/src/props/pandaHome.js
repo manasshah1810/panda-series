@@ -15,15 +15,17 @@ export function buildPandaHome(ctx) {
   }
   B.add(m.bamboo, lathe([[0.001, 0.05], [0.04, 0.056], [R * 0.7, 0.032], [R + 0.012, 0.0], [R + 0.012, -0.012], [0.001, -0.012]], rad), { p: [sx, gy + 3 * bh + 0.012, sz] }, null, 'steamer');
   B.add(m.woodDark, new THREE.SphereGeometry(0.022, 8, 6), { p: [sx, gy + 3 * bh + 0.066, sz] }, null, 'steamer');
-  // ---- cast-iron wok on the front-right burner
-  const wx = K.x + 0.2, wz = pz + 0.13, wr = 0.19, wy = gy + 0.02, prof = [];
-  const wn = T.rad >= 20 ? 8 : 4;
-  for (let i = 0; i <= wn; i++) { const a = (i / wn) * 1.05, r = Math.sin(a) * 0.26, y = (1 - Math.cos(a)) * 0.26; prof.push([Math.max(0.001, r), y]); }
-  for (let i = wn; i >= 0; i--) { const a = (i / wn) * 1.05, r = Math.sin(a) * 0.255 - 0.006, y = (1 - Math.cos(a)) * 0.255 + 0.006; prof.push([Math.max(0.001, r), y]); }
-  B.add(m.iron, lathe(prof, rad), { p: [wx, wy, wz] }, null, 'wok');
-  B.add(m.iron, new THREE.CylinderGeometry(0.014, 0.012, 0.28, 8), { p: [wx + 0.34, wy + 0.16, wz], r: [0, 0, -(Math.PI / 2 - 0.35)] }, null, 'wok');
-  B.add(m.wood, new THREE.CylinderGeometry(0.017, 0.015, 0.16, 8), { p: [wx + 0.49, wy + 0.2, wz], r: [0, 0, -(Math.PI / 2 - 0.35)] }, null, 'wok');
-  ctx.collide('steamer', [sx - R, gy, sz - R, sx + R, gy + 3 * bh + 0.07, sz + R]); ctx.collide('wok', [wx - 0.27, wy, wz - 0.27, wx + 0.66, wy + 0.27, wz + 0.27]);
+  // ---- cast-iron wok on the front-right burner (ctx.wok === false frees that burner for the Beat-4 stockpot)
+  const wx = K.x + 0.2, wz = pz + 0.13, wr = 0.19, wy = gy + 0.02;
+  if (ctx.wok !== false) {
+    const prof = [], wn = T.rad >= 20 ? 8 : 4;
+    for (let i = 0; i <= wn; i++) { const a = (i / wn) * 1.05, r = Math.sin(a) * 0.26, y = (1 - Math.cos(a)) * 0.26; prof.push([Math.max(0.001, r), y]); }
+    for (let i = wn; i >= 0; i--) { const a = (i / wn) * 1.05, r = Math.sin(a) * 0.255 - 0.006, y = (1 - Math.cos(a)) * 0.255 + 0.006; prof.push([Math.max(0.001, r), y]); }
+    B.add(m.iron, lathe(prof, rad), { p: [wx, wy, wz] }, null, 'wok');
+    B.add(m.iron, new THREE.CylinderGeometry(0.014, 0.012, 0.28, 8), { p: [wx + 0.34, wy + 0.16, wz], r: [0, 0, -(Math.PI / 2 - 0.35)] }, null, 'wok');
+    B.add(m.wood, new THREE.CylinderGeometry(0.017, 0.015, 0.16, 8), { p: [wx + 0.49, wy + 0.2, wz], r: [0, 0, -(Math.PI / 2 - 0.35)] }, null, 'wok');
+  }
+  ctx.collide('steamer', [sx - R, gy, sz - R, sx + R, gy + 3 * bh + 0.07, sz + R]); if (ctx.wok !== false) ctx.collide('wok', [wx - 0.27, wy, wz - 0.27, wx + 0.66, wy + 0.27, wz + 0.27]);
   // ---- clay teapot (left end of the counter) with a bamboo-handled lid knob
   const tx = -3.15, tz = zb + 0.38, tp = [[0.001, 0], [0.06, 0], [0.095, 0.045], [0.1, 0.1], [0.08, 0.15], [0.05, 0.175], [0.045, 0.19], [0.04, 0.186], [0.04, 0.17], [0.001, 0.17]];
   B.add(m.clay, lathe(tp, rad), { p: [tx, topY, tz] }, null, 'teapot');
