@@ -3,3 +3,4 @@ node_modules
 dist
 *.tsbuildinfo
 dist
+episodes/ep01-chef/review/video/frames/
