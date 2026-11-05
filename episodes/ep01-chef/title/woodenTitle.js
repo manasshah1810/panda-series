@@ -5,7 +5,7 @@ import { STICK_POINT, LAND_TILT_DEG, EMBED } from '../props/knife/knifeAnimation
 
 /**
  * 3D wooden title "What if Panda was a Chef?" built only from code: stroke glyphs -> rounded wooden tubes (no font files).
- * The 'f' of "if" is NOT built: the knife is its stem. Only the f's hook and crossbar are made (they slide in around the knife).
+ * The 'i' of "if" is NOT built: the knife is its stem. Only the i's dot is made (it drops onto the knife handle); the 'f' is a normal letter.
  *
  * All the letters are merged into ONE mesh (1 draw call). Per-letter build animation runs in the vertex shader as a pure function of
  * the single uniform `uT` (master-timeline seconds): scrub-safe by construction, no tweens, no state.
@@ -37,8 +37,8 @@ function walnutMaple(seed) {
   if (typeof document === 'undefined') return null;
   const c = document.createElement('canvas'); c.width = 256; c.height = 128; const g = c.getContext('2d');
   let s = seed >>> 0; const r = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
-  g.fillStyle = '#D9AE72'; g.fillRect(0, 0, 256, 128);
-  for (let i = 0; i < 46; i++) { const y = r() * 128, v = (r() - 0.5) * 36; g.strokeStyle = `rgba(${150 + v},${100 + v * 0.7},${52 + v * 0.4},${0.18 + r() * 0.3})`; g.lineWidth = 0.7 + r() * 2.2; g.beginPath(); g.moveTo(0, y); g.bezierCurveTo(80, y + (r() - 0.5) * 8, 170, y + (r() - 0.5) * 8, 256, y + (r() - 0.5) * 6); g.stroke(); }
+  g.fillStyle = '#6E4526'; g.fillRect(0, 0, 256, 128);
+  for (let i = 0; i < 46; i++) { const y = r() * 128, v = (r() - 0.5) * 36; g.strokeStyle = `rgba(${150 + v * 2},${96 + v * 1.4},${52 + v * 0.8},${0.14 + r() * 0.26})`; g.lineWidth = 0.7 + r() * 2.2; g.beginPath(); g.moveTo(0, y); g.bezierCurveTo(80, y + (r() - 0.5) * 8, 170, y + (r() - 0.5) * 8, 256, y + (r() - 0.5) * 6); g.stroke(); }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t;
 }
 
@@ -70,11 +70,11 @@ export function createWoodenTitle({ envMap = null, unit = 0.18, radius = 0.115, 
     const bb = new THREE.Box3().setFromBufferAttribute(geo.attributes.position); meta.pivot = bb.getCenter(new THREE.Vector3()); pieces.push({ geo, ...meta });
   };
 
-  // ---- layout: find the cursor start so that the stem of the 'f' in "if" sits exactly on the knife axis (xu = S.x) ----
-  const chars = [...TITLE_TEXT]; const fStemIdx = TITLE_TEXT.indexOf('if') + 1;          // index of the knife 'f'
+  // ---- layout: find the cursor start so that the stem of the 'i' in "if" sits exactly on the knife axis (xu = S.x) ----
+  const chars = [...TITLE_TEXT]; const fStemIdx = TITLE_TEXT.indexOf('if');              // index of the knife 'i'
   const adv = (ch) => (ch === ' ' ? SPACE : GLYPHS[ch].adv);
   let before = 0; for (let i = 0; i < fStemIdx; i++) before += adv(chars[i]);
-  const x0 = S.x - (before + 0.3) * unit;                                               // glyph f stem is at x = 0.3
+  const x0 = S.x - (before + 0.1) * unit;                                               // glyph i stem is at x = 0.1
   let cursor = 0; const letterOrder = [];
   chars.forEach((ch, i) => {
     const cx = x0 + cursor * unit; cursor += adv(ch);
@@ -88,16 +88,11 @@ export function createWoodenTitle({ envMap = null, unit = 0.18, radius = 0.115, 
     addPiece(geos, { start: T.restStart + k * stag, dur: T.letterDur, dir: new THREE.Vector3(0, -0.18, 0.12), amt: 1, rot: (k % 2 ? 1 : -1) * 0.35, tag: ch });
   });
 
-  // ---- the f's hook + crossbar, built in knife coordinates (du from the axis, v up the axis in plane height) ----
+  // ---- the i's dot, built in knife coordinates (du from the axis, v up the axis in plane height): drops onto the handle butt ----
   const c15 = Math.cos((tiltDeg * Math.PI) / 180), exposed = KNIFE.length - EMBED / c15, vTop = exposed * c15;
-  const kp = (du, v) => toWorld(S.x + du, v);
-  const hook = { k: 'C', p: [[0.0, vTop - 0.006], [0.0, vTop + 0.045], [0.035, vTop + 0.1], [0.1, vTop + 0.125], [0.17, vTop + 0.1], [0.2, vTop + 0.05]] };
-  const bar = { k: 'L', p: [[-0.115, unit * 1.0], [0.15, unit * 1.0]] };
-  const mk = (stroke) => stroke.p.map(([a, b]) => kp(a, b));
-  const hookGeos = strokeGeos({ ...hook, p: hook.p.map(([a, b]) => [a, b]) }, (a, b) => kp(a, b));
-  const barGeos = strokeGeos(bar, (a, b) => kp(a, b)); void mk;
-  addPiece(hookGeos, { start: T.hookStart + 0.1, dur: T.hookDur - 0.1, dir: new THREE.Vector3(0.45, 0.12, 0.0), amt: 1, rot: -0.5, tag: 'f-hook' });
-  addPiece(barGeos, { start: T.hookStart, dur: T.hookDur - 0.1, dir: new THREE.Vector3(-0.5, 0.0, 0.0), amt: 1, rot: 0.4, tag: 'f-bar' });
+  const dotR = rad * 1.9, dotV = vTop + 0.04 + dotR, dc = toWorld(S.x, dotV);
+  const dotGeo = new THREE.SphereGeometry(dotR, 16, 12).translate(dc.x, dc.y, dc.z);
+  addPiece([dotGeo], { start: T.hookStart, dur: T.hookDur, dir: new THREE.Vector3(0.0, 0.34, 0.0), amt: 1, rot: 0, tag: 'i-dot' });
 
   // ---- merge to ONE mesh with per-vertex animation attributes ----
   const geos = pieces.map((p) => {
@@ -107,8 +102,8 @@ export function createWoodenTitle({ envMap = null, unit = 0.18, radius = 0.115, 
   });
   const merged = mergeGeometries(geos, false); geos.forEach((g) => g.dispose());
   const uniforms = { uT: { value: 0 } };
-  const mat = new THREE.MeshStandardMaterial({ color: '#FFFFFF', map: walnutMaple(5), roughness: 0.55, metalness: 0, envMap, envMapIntensity: 0.55 });
-  if (!mat.map) mat.color.set('#D9AE72');
+  const mat = new THREE.MeshStandardMaterial({ color: '#FFFFFF', map: walnutMaple(5), roughness: 0.38, metalness: 0, envMap, envMapIntensity: 0.55 });
+  if (!mat.map) mat.color.set('#6E4526');
   mat.onBeforeCompile = (sh) => {
     sh.uniforms.uT = uniforms.uT;
     sh.vertexShader = sh.vertexShader.replace('#include <common>', `#include <common>

@@ -3,7 +3,7 @@ import * as THREE from 'three';
 export function createLights(cfg, root) {
   const L = cfg.lights, S = cfg.shelves, zb = cfg.room.backWallZ, H = cfg.backCounter.hood;
   const sun = new THREE.DirectionalLight('#FFE9CC', 2.6); sun.name = 'windowLight'; sun.position.set(...L.window.pos); sun.target.position.set(...L.window.target);
-  sun.castShadow = true; Object.assign(sun.shadow.camera, { left: -9, right: 9, top: 7, bottom: -7, near: 1, far: 30 }); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03; sun.shadow.radius = 3;
+  sun.castShadow = true; Object.assign(sun.shadow.camera, { left: -6.5, right: 6.5, top: 5, bottom: -5, near: 1, far: 26 }); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03; sun.shadow.radius = 3;
   const hemi = new THREE.HemisphereLight('#EEE8DE', '#92867A', 0.62); hemi.name = 'skyFill';
   const fill = new THREE.DirectionalLight('#FFF1DE', 0.7); fill.name = 'cameraFill'; fill.position.set(...L.fill.pos); fill.target.position.set(...L.fill.target);
   const rim = new THREE.DirectionalLight('#DCE7F4', 1.1); rim.name = 'rimLight'; rim.position.set(...L.rim.pos); rim.target.position.set(...L.rim.target);
