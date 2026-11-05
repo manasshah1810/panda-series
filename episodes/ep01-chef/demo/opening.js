@@ -58,7 +58,7 @@ const miseTl = createMiseEnPlaceTimeline({ cameraRig: { camera }, rawIngredients
 op.attachBeat(miseTl, OPENING_END + HERO_TIMES.duration);
 // ---- Beat 3: the sliceable bamboo is mounted on the cutting board (board frame = raw.group). It stays hidden until the chop beat swaps it in for the solid cone.
 const sliceable = createSliceableBamboo({ quality: q.get('quality') === 'low' ? 'low' : q.get('quality') === 'medium' ? 'medium' : 'high', envMap: kitchen._state?.env?.texture ?? null });
-raw.group.add(sliceable.group); sliceable.group.visible = false;
+raw.group.add(sliceable.group); sliceable.group.rotation.y = Math.PI / 2; sliceable.group.visible = false;   // lies along board +x (tip towards the lens) exactly where the solid cone lay; it clears the bok choy / shiitake / dough
 const render = () => renderer.render(scene, camera);
 // ---- Beat 3: the ASMR scroll-chop, stitched on after the mise-en-place beat: Beat 1 (opening) -> 1b (hero bowl) -> 2 (mise en place) -> 3 (chop)
 const vignette = document.getElementById('vignette'), CHOP_START = OPENING_END + HERO_TIMES.duration + MISE_DURATION;
@@ -81,7 +81,7 @@ window.__op = {
     render(); const png = w.snap(); hid.forEach((o) => { o.visible = true; }); return png; },
   sliceable,
   /** Diagnostic still: lineup finished, original solid cone hidden, sliceable bamboo shown, camera on M14 (board-relative). `tips` = per-slice tip progress. */
-  chopSetup(tips = []) { const w = window.__op; w.seek(w.MISE_START + 14.6); for (const id of ['bamboo_shoot', 'noodle_dough', 'shiitake_mushrooms', 'chili_oil_jar', 'corn_bowl', 'sesame_bowl', 'shallot_chip_bowl', 'ginger_root']) raw.ingredientsMap.get(id).parts.forEach((pt) => { pt.root.visible = false; if (pt.shadow) pt.shadow.visible = false; }); sliceable.group.visible = true; miseTl.mise.tags.forEach((m) => { m.visible = false; }); paws.group.visible = false;
+  chopSetup(tips = []) { const w = window.__op; w.seek(w.MISE_START + 14.6); for (const id of ['bamboo_shoot']) raw.ingredientsMap.get(id).parts.forEach((pt) => { pt.root.visible = false; if (pt.shadow) pt.shadow.visible = false; }); sliceable.group.visible = true; miseTl.mise.tags.forEach((m) => { m.visible = false; }); paws.group.visible = false;
     sliceable.slices.forEach((_, i) => sliceable.setSliceTip(i, tips[i] ?? 0));
     const o = raw.group.getWorldPosition(new THREE.Vector3()), sh = o.sub(new THREE.Vector3(...MARK_BOARD_ORIGIN)).add(new THREE.Vector3(...M14_FRAMING_NUDGE)), m = CAMERA_MARKS.M14_macro_chop_side;
     camera.up.set(0, 1, 0); camera.position.set(...m.position).add(sh); camera.fov = m.fov; camera.lookAt(new THREE.Vector3(...m.lookAt).add(sh)); camera.updateProjectionMatrix(); render(); return w.snap(); },

@@ -23,20 +23,20 @@ export const CHOP_TIMES = Object.freeze({
   whip: [0, 0.7], focusIn: [0.45, 1.25], pandaIn: 0.3,       // whip-down, depth-of-field focus pull, Panda + knife pop in while the camera is mid-whip
   firstStrike: 1.3, stride: 0.62, strike: 0.09, rest: 0.09, raise: 0.34,   // chop cycle: strike (fast) -> rest on board -> raise (+ slide to next kerf) -> dwell
   tip: 0.55, burst: 0.6, shake: 0.22,                          // per-impact windows
-  flourish: [6.62, 7.4], sweep: [6.9, 8.5], focusOut: [6.9, 8.1], look: [7.0, 8.0], smirk: [7.0, 8.4], spin: [7.5, 9.3], wink: [9.0, 9.2], duration: 10.6,
+  flourish: [6.62, 7.4], sweep: [6.7, 7.3], focusOut: [6.9, 8.1], look: [7.0, 8.0], smirk: [7.0, 8.4], spin: [7.5, 9.3], wink: [9.0, 9.2], duration: 10.6,
 });
 /** Master-clock helper: impact (strike frame) time of chop i, in beat seconds. */
 export const impactTime = (i) => CHOP_TIMES.firstStrike + CHOP_TIMES.stride * i + CHOP_TIMES.strike;
 export const SHAKE_Y = -0.01;                                   // spec: Y-axis bump of -0.01 units, returning to 0
 export const FLECKS_PER_CHOP = 4;
-const KNIFE_POSE = Object.freeze({ yaw: 32 * Math.PI / 180, pitchDown: 8 * Math.PI / 180, pitchUp: 40 * Math.PI / 180, lift: 0.17, contactY: 0.31 });
-/** Panda stance, relative to the board-frame origin (board surface centre): he stands at the island's left end FACING THE LENS (+x), the log runs left-right in front of him (a proper cross-cut), blade pointing forward. */
-export const STANCE = Object.freeze({ dx: -0.62, dz: -0.52, yaw: Math.PI / 2 });
+const KNIFE_POSE = Object.freeze({ yaw: 62 * Math.PI / 180, pitchDown: 8 * Math.PI / 180, pitchUp: 40 * Math.PI / 180, lift: 0.17, contactY: 0.31 });
+/** Panda stance, relative to the board-frame origin (board surface centre): he stands at the far (-x) end of the log FACING THE LENS (+x); the log lies along board +x exactly like the solid cone it replaces (tip towards the lens), and his blade lies across it, pointing to his right. */
+export const STANCE = Object.freeze({ dx: -0.55, dz: -0.85, yaw: Math.PI / 2 });
 /** Chest twist / spine lean candidates; the build keeps the pair with the smallest worst-case IK error. */
 const POSTURES = [[0, 0], [0.3, 0], [0.6, 0], [0, 0.2], [0.3, 0.2], [0.6, 0.2]];
 /** Flourish grip (Panda root-local, facing +z): paw out to his right side, blade pointing up beside the head. */
-const FLOURISH_HAND = Object.freeze([-0.62, 1.15, 0.45]);
-const TABLE_ANCHORS = [0, 4, 8], TABLE_SAMPLES = 9;
+const FLOURISH_HAND = Object.freeze([-0.72, 1.5, 0.38]);
+const TABLE_ANCHORS = [0, 1, 2, 3, 4, 5, 6, 7, 8], TABLE_SAMPLES = 13;   // one IK row per kerf, 13 knife heights: bilinear lookup in between stays within a millimetre of the true solution
 
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
 const sm = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
@@ -94,6 +94,7 @@ export function createAsmrChopTimeline({ cameraRig, sliceable, rawIngredients, m
   const T = CHOP_TIMES, D = T.duration, camera = cameraRig.camera, marks = cameraRig.marks ?? CAMERA_MARKS, frame = rawIngredients.group, mise = miseTimeline.mise;
   frame.updateWorldMatrix(true, false);
   const O = frame.getWorldPosition(new THREE.Vector3()), shift = O.clone().sub(V(MARK_BOARD_ORIGIN));
+  const LY = sliceable.group.rotation.y;   // the sliceable's own +z (tip direction) is rotated by LY about y into the board frame (PI/2 -> along board +x, like the cone it replaces)
   const N = CHOP_COUNT; if (sliceable.count < N) throw new Error('asmrChopBeat: sliceable needs ' + N + ' slices');
   const ROOT = new THREE.Vector3(O.x + STANCE.dx, 0, O.z + STANCE.dz), YAW = new THREE.Vector3(0, 1, 0);   // Panda root, world
   const toWorld = (v) => v.clone().applyAxisAngle(YAW, STANCE.yaw).add(ROOT), toLocal = (v) => v.clone().sub(ROOT).applyAxisAngle(YAW, -STANCE.yaw);   // Panda-local <-> world (stance yaw about y)
@@ -124,8 +125,8 @@ export function createAsmrChopTimeline({ cameraRig, sliceable, rawIngredients, m
     _X.set(-Math.sin(phi) * Math.cos(psi), Math.cos(phi), -Math.sin(phi) * Math.sin(psi));   // = -edge
     _Z.crossVectors(_X, _Y); _m4.makeBasis(_X, _Y, _Z); return out.setFromRotationMatrix(_m4);
   }
-  const kerfZ = (kk) => O.z + sliceable.cutPoint(0).z - sliceable.pitch * kk;   // continuous kerf coordinate: kk = i -> the cut between slice i and i + 1 (world z)
-  const contactAt = (kk, ks, out) => out.set(O.x, O.y + KNIFE_POSE.lift * ks, kerfZ(clamp01(kk / (N - 1)) * (N - 1)));
+  const kerfL = (kk) => sliceable.cutPoint(0).z - sliceable.pitch * kk;   // continuous kerf coordinate along the log axis: kk = i -> the cut between slice i and i + 1
+  const contactAt = (kk, ks, out) => { const zl = kerfL(clamp01(kk / (N - 1)) * (N - 1)); return out.set(O.x + Math.sin(LY) * zl, O.y + KNIFE_POSE.lift * ks, O.z + Math.cos(LY) * zl); };
   const chopQuat = (ks, out) => knifeQuat(KNIFE_POSE.pitchDown + (KNIFE_POSE.pitchUp - KNIFE_POSE.pitchDown) * ks, KNIFE_POSE.yaw, out);
   const flourishQuat = knifeQuat(Math.PI / 2, Math.PI / 2, new THREE.Quaternion());   // blade up, flat face to the finale camera (looking -x), edge towards screen-left
 
@@ -152,7 +153,7 @@ export function createAsmrChopTimeline({ cameraRig, sliceable, rawIngredients, m
     const g = new THREE.Vector3(), build = (tw, ln) => {   // the whole table for one posture (continuation from the previous solution keeps the elbow on one branch)
       const tb = []; let worst = 0, prevI = null;
       TABLE_ANCHORS.forEach((ai, ia) => { const row = []; for (let m = 0; m < TABLE_SAMPLES; m++) { const ks = m / (TABLE_SAMPLES - 1); gripFor(ai, ks, g); const tgt = toLocal(g);
-        const guess = ia > 0 ? prevI[m].a : m > 0 ? row[m - 1].a : null, r = solve(tgt, tw, ln, guess); worst = Math.max(worst, r.err); row.push(r); } tb.push(row); prevI = row; });
+        const guess = ia > 0 ? prevI[m].a : m > 0 ? row[m - 1].a : null, r = solve(tgt, tw, ln + 0.07 * (1 - ks), guess); /* the runtime spine lean into every strike is part of the solved pose */ worst = Math.max(worst, r.err); row.push(r); } tb.push(row); prevI = row; });
       tb.worst = worst; return tb; };
     for (const [tw, ln] of POSTURES) { const tb = build(tw, ln); if (tb.worst < worstErr) { worstErr = tb.worst; tables = tb; posture = [tw, ln]; } if (worstErr < 0.004) break; }
     const fl = solve(V(FLOURISH_HAND), 0, 0, tables[0][TABLE_SAMPLES - 1].a); worstErr = Math.max(worstErr, fl.err); tables.flourish = fl;
@@ -161,14 +162,14 @@ export function createAsmrChopTimeline({ cameraRig, sliceable, rawIngredients, m
   opening.seek(0);   // back to the reset state (the master is rebuilt by the caller anyway)
 
   const angles = (kk, ks, out) => {   // pure bilinear table lookup: chop index x knife height
-    const kc = Math.min(8, Math.max(0, kk)), a = Math.min(1, Math.floor(kc / 4)), fa = (kc - 4 * a) / 4, sM = clamp01(ks) * (TABLE_SAMPLES - 1), m = Math.min(TABLE_SAMPLES - 2, Math.floor(sM)), fm = sM - m;
+    const kc = Math.min(8, Math.max(0, kk)), a = Math.min(7, Math.floor(kc)), fa = kc - a, sM = clamp01(ks) * (TABLE_SAMPLES - 1), m = Math.min(TABLE_SAMPLES - 2, Math.floor(sM)), fm = sM - m;
     for (let j = 0; j < 3; j++) { const lo = tables[a][m].a[j] + (tables[a][m + 1].a[j] - tables[a][m].a[j]) * fm, hi = tables[a + 1][m].a[j] + (tables[a + 1][m + 1].a[j] - tables[a + 1][m].a[j]) * fm; out[j] = lo + (hi - lo) * fa; }
     return out;
   };
 
   // ------------------------------------------------------------------ scene objects this beat drives
-  const flecks = createBambooFlecks(); frame.add(flecks.mesh);
-  const clearIds = [...rawIngredients.ids];   // the board is cleared for the chop (the Panda's belly leans over its far end); the solid bamboo cone is swapped for the sliceable
+  const flecks = createBambooFlecks(), fleckFrame = new THREE.Group(); fleckFrame.name = 'fleckFrame'; fleckFrame.rotation.y = LY; frame.add(fleckFrame); fleckFrame.add(flecks.mesh);   // same frame as the sliceable (kerf points are in log-local coordinates)
+  const clearIds = ['bamboo_shoot'];   // ONLY the solid bamboo cone is swapped for the sliceable (same board coordinates); the other 11 mise-en-place ingredients stay on the board all through the chop
   const cleared = clearIds.flatMap((id) => rawIngredients.ingredientsMap.get(id).parts.flatMap((p) => [p.root, p.shadow].filter(Boolean)));
   const contact = scene.getObjectByName('contactShadow') ?? null;
   const dim = Object.values(lighting?.lights ?? {}).flat().filter((l) => l && l.isLight && l !== lighting?.spot).map((l) => ({ l, base: l.intensity }));
@@ -189,14 +190,14 @@ export function createAsmrChopTimeline({ cameraRig, sliceable, rawIngredients, m
     ft('tp' + i, 0, 1, I, T.tip, 'none'); ft('fx' + i, 0, 1, I, T.burst, 'none'); ft('sh' + i, 0, 1, I, T.shake, 'none');
   }
   ft('fl', 0, 1, T.flourish[0], T.flourish[1] - T.flourish[0], 'sine.inOut');
-  ft('cam2', 0, 1, T.sweep[0], T.sweep[1] - T.sweep[0], 'power2.inOut');
+  ft('cam2', 0, 1, T.sweep[0], T.sweep[1] - T.sweep[0], 'power2.inOut');   // smooth 0.6 s recovery: M14 macro -> medium framing for the flourish + wink
   ft('look', 0, 1, T.look[0], T.look[1] - T.look[0], 'sine.inOut'); ft('smirk', 0, 1, T.smirk[0], T.smirk[1] - T.smirk[0], 'sine.inOut');
   ft('spin', 0, 1, T.spin[0], T.spin[1] - T.spin[0], 'sine.inOut'); ft('wink', 0, 1, T.wink[0], T.wink[1] - T.wink[0], 'power2.out');
   tl.to({}, { duration: D - tl.duration() }, tl.duration());
 
   // ------------------------------------------------------------------ the single writer
   const FACE_KEYS = Object.keys(resolveFace('neutral')), fA = resolveFace('determined'), fB = resolveFace('smug'), fC = resolveFace('winkRight');
-  const eIn = E('power2.in'), ang = [0, 0, 0], ang0 = [0, 0, 0], _cq = new THREE.Quaternion(), _fq = new THREE.Quaternion(), _spin = new THREE.Quaternion(), _C = new THREE.Vector3(), _grip = new THREE.Vector3(), _edge = new THREE.Vector3(), _stage = new THREE.Matrix4(), _T = new THREE.Matrix4();
+  const eIn = E('power2.in'), ang = [0, 0, 0], ang0 = [0, 0, 0], _cq = new THREE.Quaternion(), _fq = new THREE.Quaternion(), _spin = new THREE.Quaternion(), _C = new THREE.Vector3(), _grip = new THREE.Vector3(), _edge = new THREE.Vector3(), _stage = new THREE.Matrix4(), _T = new THREE.Matrix4(), _hq = new THREE.Quaternion(), _hs = new THREE.Vector3(), _lp = new THREE.Vector3(), knifeHome = knife.parent, knifeHomeScale = knife.scale.clone();
   const dbg = { edge: new THREE.Vector3(), contact: new THREE.Vector3(), hand: new THREE.Vector3(), wink: 0 };
 
   function restorePanda() {   // not in this beat (or before the Panda is on): every joint this beat writes goes back to the end-of-opening value
@@ -212,7 +213,7 @@ export function createAsmrChopTimeline({ cameraRig, sliceable, rawIngredients, m
     if (fog) fog.density = 0.32 * f;
     if (vignetteElement) vignetteElement.style.opacity = String(0.7 * f);
 
-    // --- props: the solid cone and the foreground ingredients are cleared mid-whip, the sliceable bamboo takes their place
+    // --- props: the solid cone is swapped for the sliceable bamboo mid-whip (everything else on the board stays put)
     const swapped = started && w > 0.5;
     for (const o of cleared) o.visible = !swapped;
     sliceable.group.visible = swapped; for (let i = 0; i < N; i++) sliceable.setSliceTip(i, started ? s['tp' + i] : 0);
@@ -236,7 +237,7 @@ export function createAsmrChopTimeline({ cameraRig, sliceable, rawIngredients, m
     // --- Panda + knife
     const on = started && w > 0.3;   // the Panda + knife pop in once the whip is well under way (hidden by the motion)
     panda.root.visible = on; knife.visible = on; if (contact) contact.visible = !started;
-    if (!on) { restorePanda(); return; }   // hidden: every joint it writes is pinned to its end-of-opening value (so hidden state is a pure function of time too)
+    if (!on) { if (knife.parent !== knifeHome) { knifeHome.add(knife); knife.scale.copy(knifeHomeScale); } restorePanda(); return; }   // hidden: every joint it writes is pinned to its end-of-opening value (so hidden state is a pure function of time too)
     // stage: root world position = ROOT, facing +z, whatever the opening left in the root's own transform (stable after the opening ends)
     panda.root.updateMatrix(); _stage.copy(_T.makeTranslation(ROOT.x, ROOT.y, ROOT.z)).multiply(_T.makeRotationY(STANCE.yaw)).multiply(_T.copy(panda.root.matrix).invert()); stage.matrix.copy(_stage); stage.matrixWorldNeedsUpdate = true;
     const kk = s.kk, ks = s.ks, fl = s.fl;
@@ -251,23 +252,26 @@ export function createAsmrChopTimeline({ cameraRig, sliceable, rawIngredients, m
     stage.updateMatrixWorld(true);
     // knife: the edge point rides the contact path exactly; the paw (FK) follows the same path to within the solver's tolerance
     hand.getWorldPosition(_grip); chopQuat(ks, _cq); contactAt(kk, ks, _C);
-    _edge.copy(EDGE_LOCAL).applyQuaternion(_cq).add(_grip); _grip.addScaledVector(_edge.sub(_C), -(1 - fl));   // shift the knife (not the paw) by the residual so the edge sits on the path
+    _edge.copy(EDGE_LOCAL).applyQuaternion(_cq).add(_grip); _grip.addScaledVector(_edge.sub(_C), -(1 - sm(0, 0.02, fl)));   // shift the knife (not the paw) by the residual so the edge sits on the path
     _fq.copy(flourishQuat).multiply(_spin.setFromAxisAngle(_zAxis, s.spin * (Math.PI * 2 + 0.26)));
     _cq.slerp(_fq, fl);
-    knife.position.copy(_grip); knife.quaternion.copy(_cq); knife.updateMatrixWorld(true);
+    // the knife is a CHILD of the paw socket for the whole beat: its local position is the (sub-millimetre) edge correction, its local rotation puts the blade where the chop / flourish wants it, and the spin about local Z is baked into that rotation
+    if (knife.parent !== hand) hand.add(knife);
+    hand.updateWorldMatrix(true, false); hand.getWorldQuaternion(_hq).invert(); hand.getWorldScale(_hs); hand.worldToLocal(_lp.copy(_grip));
+    knife.position.copy(_lp); knife.quaternion.copy(_hq.multiply(_cq)); knife.scale.set(1 / _hs.x, 1 / _hs.y, 1 / _hs.z); knife.updateMatrixWorld(true);
     dbg.edge.copy(EDGE_LOCAL).applyMatrix4(knife.matrixWorld); dbg.contact.copy(_C); dbg.hand.copy(hand.getWorldPosition(hv)); dbg.wink = s.wink;
   }
 
   // --- build: evaluate the whole range once so every scalar owns its start value, then leave the world exactly as the previous beat left it
-  const saved = { cam: { p: camera.position.clone(), up: camera.up.clone(), fov: camera.fov, q: camera.quaternion.clone() }, vis: cleared.map((o) => o.visible), sv: sliceable.group.visible, fv: flecks.mesh.visible, pawVis: [pawL.visible, pawR.visible], pawP: [pawL.position.clone(), pawR.position.clone()], dim: dim.map((d) => d.l.intensity), fog: fog ? fog.density : 0, vig: vignetteElement ? vignetteElement.style.opacity : null, tags: mise.tagMeshes.map((m) => m.visible), pv: panda.root.visible, kv: knife.visible, cv: contact ? contact.visible : true, kp: knife.position.clone(), kq: knife.quaternion.clone() };
+  const saved = { cam: { p: camera.position.clone(), up: camera.up.clone(), fov: camera.fov, q: camera.quaternion.clone() }, vis: cleared.map((o) => o.visible), sv: sliceable.group.visible, fv: flecks.mesh.visible, pawVis: [pawL.visible, pawR.visible], pawP: [pawL.position.clone(), pawR.position.clone()], dim: dim.map((d) => d.l.intensity), fog: fog ? fog.density : 0, vig: vignetteElement ? vignetteElement.style.opacity : null, tags: mise.tagMeshes.map((m) => m.visible), pv: panda.root.visible, kv: knife.visible, kpar: knife.parent, cv: contact ? contact.visible : true, kp: knife.position.clone(), kq: knife.quaternion.clone() };
   tl.eventCallback('onUpdate', apply);
   tl.progress(1).progress(0); apply();
   cleared.forEach((o, i) => { o.visible = saved.vis[i]; }); sliceable.group.visible = saved.sv; flecks.mesh.visible = saved.fv; pawL.visible = saved.pawVis[0]; pawR.visible = saved.pawVis[1]; pawL.position.copy(saved.pawP[0]); pawR.position.copy(saved.pawP[1]);
   dim.forEach((d, i) => { d.l.intensity = saved.dim[i]; }); if (fog) fog.density = saved.fog; if (vignetteElement) vignetteElement.style.opacity = saved.vig ?? '0'; mise.tagMeshes.forEach((m, i) => { m.visible = saved.tags[i]; });
-  panda.root.visible = saved.pv; knife.visible = saved.kv; if (contact) contact.visible = saved.cv; knife.position.copy(saved.kp); knife.quaternion.copy(saved.kq);
+  panda.root.visible = saved.pv; knife.visible = saved.kv; if (contact) contact.visible = saved.cv; if (knife.parent !== saved.kpar) { saved.kpar.add(knife); knife.scale.copy(knifeHomeScale); } knife.position.copy(saved.kp); knife.quaternion.copy(saved.kq);
   camera.position.copy(saved.cam.p); camera.up.copy(saved.cam.up); camera.fov = saved.cam.fov; camera.quaternion.copy(saved.cam.q); camera.updateProjectionMatrix();
 
   tl.chop = { apply, state: s, duration: D, times: T, impacts: Array.from({ length: N }, (_, i) => impactTime(i)), debug: dbg, tables, ikWorstError: worstErr, posture, marks: { start, M14, M15 }, stage, flecks, root: ROOT, edgeX,
-    dispose() { flecks.dispose(); stage.removeFromParent(); } };
+    dispose() { flecks.dispose(); fleckFrame.removeFromParent(); if (knife.parent !== knifeHome) { knifeHome.add(knife); knife.scale.copy(knifeHomeScale); } stage.removeFromParent(); } };
   return tl;
 }

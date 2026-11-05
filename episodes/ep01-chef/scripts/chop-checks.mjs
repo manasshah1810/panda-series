@@ -25,10 +25,10 @@ R.rigging = await h.page.evaluate(() => { const o = window.__op, T = o.THREE, sl
   for (let i = 0; i < sl.count; i++) { const s = sl.slices[i], mesh = s.children[0]; sl.setSliceTip(i, 0); s.updateMatrixWorld(true);
     const b0 = new T.Box3().setFromObject(mesh), inv = o.raw.group.matrixWorld.clone().invert(); b0.applyMatrix4(inv);
     const pivotY = s.position.y, pivotZ = s.position.z, thick = sl.BAMBOO.thickness;
-    const standing = { bottomY: +b0.min.y.toFixed(4), frontZ: +b0.max.z.toFixed(4), pivotZ: +pivotZ.toFixed(4), rotX: s.rotation.x };
+    const standing = { bottomY: +b0.min.y.toFixed(4), frontZ: +b0.max.x.toFixed(4), pivotZ: +pivotZ.toFixed(4), rotX: s.rotation.x };
     let minY = Infinity; for (let k = 0; k <= 200; k++) { sl.setSliceTip(i, k / 200); s.updateMatrixWorld(true); const b = new T.Box3().setFromObject(mesh).applyMatrix4(inv); minY = Math.min(minY, b.min.y); }
     sl.setSliceTip(i, 1); s.updateMatrixWorld(true); const b1 = new T.Box3().setFromObject(mesh).applyMatrix4(inv), l = sl.landing(i);
-    const flat = { rotX: +s.rotation.x.toFixed(6), minY: +b1.min.y.toFixed(4), height: +(b1.max.y - b1.min.y).toFixed(4), restsOnTier: Math.abs(b1.min.y - l.y) < 0.002, forward: (b1.min.z + b1.max.z) / 2 > l.z + 0.5 * sl.slices[i].userData.rF };
+    const flat = { rotX: +s.rotation.x.toFixed(6), minY: +b1.min.y.toFixed(4), height: +(b1.max.y - b1.min.y).toFixed(4), restsOnTier: Math.abs(b1.min.y - l.y) < 0.002, forward: (b1.min.x + b1.max.x) / 2 > l.z + 0.2 * sl.slices[i].userData.rF };
     const pass = Math.abs(standing.bottomY) < 0.008 && Math.abs(standing.frontZ - standing.pivotZ) < 0.003 && Math.abs(standing.rotX) < 1e-12 && Math.abs(flat.rotX - Math.PI / 2) < 1e-4 && flat.restsOnTier && flat.forward && flat.height < thick + 0.012 && minY > -0.0015; ok &&= pass; res.push({ i, standing, flat, minYOverAllU: +minY.toFixed(5), pass }); sl.setSliceTip(i, 0); }
   return { slices: res, pass: ok }; });
 
@@ -52,6 +52,22 @@ R.flourish = await h.page.evaluate(([c0, t]) => { const o = window.__op, T = o.T
   const zDrift = Math.max(...zs.map((v) => Math.hypot(v[0] - zs[0][0], v[1] - zs[0][1], v[2] - zs[0][2]))), turned = Math.max(...angs) - Math.min(...angs);
   o.seek(c0 + t.duration); const f = o.panda.face.state, end = { lidL: +f.lidL.toFixed(3), lidR: +f.lidR.toFixed(3), mCurve: +f.mCurve.toFixed(3) }; o.seek(c0 + t.wink[0] - 0.3); const before = { lidR: +o.panda.face.state.lidR.toFixed(3) };
   return { localZDrift: zDrift, bladeAngleRangeRad: +turned.toFixed(3), wink: { before, end }, pass: zDrift < 0.01 && turned > 3 && end.lidR > 0.9 && end.lidL < 0.3 && before.lidR < 0.7 && end.mCurve > 0.4 }; }, [C0, times]);
+
+// 5b. follow-up fixes: (a) CONTINUITY: only the solid cone is swapped, the other 11 ingredients (and their shadows) stay visible through the whole beat;
+//     (b) the knife is a CHILD of handSocketR for the whole beat and its origin never leaves the socket (floating-knife bug);  (c) slices tip about their pivot: x never moves, pivot never slides;  (d) camera recovery is a 0.6 s power2.inOut move
+R.followups = await h.page.evaluate(([c0, D, t, imp]) => { const o = window.__op, T = o.THREE, raw = o.raw, hand = o.panda.sockets.handSocketR, res = {}, ids = [...raw.ids], others = ids.filter((id) => id !== 'bamboo_shoot'), vis = (id) => raw.ingredientsMap.get(id).parts.every((p) => { let v = true; for (let x = p.root; x; x = x.parent) if (!x.visible) v = false; return v && (!p.shadow || p.shadow.visible); });
+  const samples = []; for (let u = 0; u <= D; u += 0.2) samples.push(+u.toFixed(2)); for (const x of imp) samples.push(x + 0.05);
+  let hiddenSeen = new Set(), coneInChop = false, knifeBad = [], maxOff = 0, hv = new T.Vector3(), kv = new T.Vector3();
+  for (const u of samples) { o.seek(c0 + u); for (const id of others) if (!vis(id)) hiddenSeen.add(id); if (u > 1.0 && vis('bamboo_shoot')) coneInChop = true;
+    if (o.knife.visible) { o.knife.updateMatrixWorld(true); hand.getWorldPosition(hv); o.knife.getWorldPosition(kv); const off = hv.distanceTo(kv); maxOff = Math.max(maxOff, off); if (o.knife.parent !== hand || off > 0.006) knifeBad.push([u, o.knife.parent?.name, +off.toFixed(4)]); } }
+  o.seek(c0 - 1); const parentBefore = o.knife.parent === o.scene; o.seek(c0 + 5); o.seek(c0 - 1); const parentBack = o.knife.parent === o.scene;
+  res.continuity = { otherIngredients: others.length, hiddenAtAnyTime: [...hiddenSeen], coneHiddenDuringChop: !coneInChop, pass: others.length === 11 && hiddenSeen.size === 0 && !coneInChop };
+  res.knife = { parentedToHandSocketWhileVisible: knifeBad.length === 0, maxOriginOffsetFromSocketMM: +(maxOff * 1000).toFixed(2), violations: knifeBad.slice(0, 5), backInSceneBeforeBeat: parentBefore && parentBack, pass: knifeBad.length === 0 && maxOff < 0.006 && parentBefore && parentBack };
+  let maxX = 0, maxDz = 0; const sl = o.sliceable; for (let i = 0; i < sl.count; i++) for (let k = 0; k <= 50; k++) { sl.setSliceTip(i, k / 50); maxX = Math.max(maxX, Math.abs(sl.slices[i].position.x)); maxDz = Math.max(maxDz, Math.abs(sl.slices[i].position.z - sl.restPivot(i).z)); sl.setSliceTip(i, 0); }
+  res.slices = { maxPivotSidewaysMM: +(maxX * 1000).toFixed(3), maxPivotForwardMM: +(maxDz * 1000).toFixed(3), tipsAbout: 'bottom-front edge', pass: maxX < 1e-9 && maxDz < 1e-9 };
+  const cam = o.camera, a = c0 + t.sweep[0], b = c0 + t.sweep[1]; o.seek(a - 0.01); const p0 = cam.position.clone(); o.seek(b); const p1 = cam.position.clone(); o.seek(b + 0.3); const p2 = cam.position.clone();
+  res.cameraRecovery = { seconds: +(t.sweep[1] - t.sweep[0]).toFixed(3), ease: 'power2.inOut', moved: +p0.distanceTo(p1).toFixed(3), restsAfter: p1.distanceTo(p2) < 0.02, pass: Math.abs(t.sweep[1] - t.sweep[0] - 0.6) < 1e-9 && p0.distanceTo(p1) > 0.5 && p1.distanceTo(p2) < 0.02 };
+  res.pass = res.continuity.pass && res.knife.pass && res.slices.pass && res.cameraRecovery.pass; return res; }, [C0, D, times, IMPACTS]);
 
 // 6. scrub-safety: frames + numeric state are bit-identical forward / backward / shuffled; reversing really stands the slices back up; long excursions do not drift
 const steps = [...Array(Math.round(D / 0.25) + 1).keys()].map((i) => +(i * 0.25).toFixed(2)); for (const x of [0.02, 0.3, 1.39, 1.41, 1.5, 6.35, 6.4]) steps.push(x);
@@ -81,5 +97,5 @@ R.budget = await h.page.evaluate(([c0]) => { const o = window.__op, res = {}; o.
 R.budget.worstFullSceneMainPassCalls = Math.max(...Object.values(R.budget.fullScene).map((v) => v.mainPass.calls)); R.budget.worstFullSceneMainPassTriangles = Math.max(...Object.values(R.budget.fullScene).map((v) => v.mainPass.triangles));
 // 8. procedural only: no external image / model requests were made by the page beyond the app's own modules
 R.noExternalAssets = await h.page.evaluate(() => { const r = performance.getEntriesByType('resource').map((e) => e.name).filter((n) => /\.(png|jpe?g|webp|gif|hdr|exr|glb|gltf|obj|fbx|mp3|wav|ogg|mp4|webm)(\?|$)/i.test(n)); return { requested: r, pass: r.length === 0 }; });
-R.pass = ['boot', 'stitch', 'rigging', 'strikes', 'flourish', 'scrub', 'budget', 'noExternalAssets'].every((k) => R[k].pass);
-fs.writeFileSync(path.join(out, 'chop-checks.json'), JSON.stringify(R, null, 1)); console.log(JSON.stringify({ pass: R.pass, ...Object.fromEntries(['boot', 'stitch', 'rigging', 'strikes', 'flourish', 'scrub', 'budget', 'noExternalAssets'].map((k) => [k, R[k].pass])), budget: { ...R.budget, fullScene: undefined } }, null, 1)); await h.close(); process.exit(R.pass ? 0 : 1);
+R.pass = ['boot', 'stitch', 'rigging', 'strikes', 'flourish', 'followups', 'scrub', 'budget', 'noExternalAssets'].every((k) => R[k].pass);
+fs.writeFileSync(path.join(out, 'chop-checks.json'), JSON.stringify(R, null, 1)); console.log(JSON.stringify({ pass: R.pass, ...Object.fromEntries(['boot', 'stitch', 'rigging', 'strikes', 'flourish', 'followups', 'scrub', 'budget', 'noExternalAssets'].map((k) => [k, R[k].pass])), budget: { ...R.budget, fullScene: undefined } }, null, 1)); await h.close(); process.exit(R.pass ? 0 : 1);

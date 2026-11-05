@@ -38,8 +38,8 @@
     "i": 0,
     "standing": {
      "bottomY": 0,
-     "frontZ": 0.08,
-     "pivotZ": 0.08,
+     "frontZ": 0.14,
+     "pivotZ": 0.14,
      "rotX": 0
     },
     "flat": {
@@ -56,13 +56,13 @@
     "i": 1,
     "standing": {
      "bottomY": 0,
-     "frontZ": 0.048,
-     "pivotZ": 0.048,
+     "frontZ": 0.108,
+     "pivotZ": 0.108,
      "rotX": 0
     },
     "flat": {
      "rotX": 1.570796,
-     "minY": 0.0247,
+     "minY": 0.025,
      "height": 0.024,
      "restsOnTier": true,
      "forward": true
@@ -74,13 +74,13 @@
     "i": 2,
     "standing": {
      "bottomY": 0,
-     "frontZ": 0.016,
-     "pivotZ": 0.016,
+     "frontZ": 0.076,
+     "pivotZ": 0.076,
      "rotX": 0
     },
     "flat": {
      "rotX": 1.570796,
-     "minY": 0.0494,
+     "minY": 0.0499,
      "height": 0.024,
      "restsOnTier": true,
      "forward": true
@@ -92,13 +92,13 @@
     "i": 3,
     "standing": {
      "bottomY": 0,
-     "frontZ": -0.016,
-     "pivotZ": -0.016,
+     "frontZ": 0.044,
+     "pivotZ": 0.044,
      "rotX": 0
     },
     "flat": {
      "rotX": 1.570796,
-     "minY": 0,
+     "minY": 0.0749,
      "height": 0.024,
      "restsOnTier": true,
      "forward": true
@@ -110,13 +110,13 @@
     "i": 4,
     "standing": {
      "bottomY": 0,
-     "frontZ": -0.048,
-     "pivotZ": -0.048,
+     "frontZ": 0.012,
+     "pivotZ": 0.012,
      "rotX": 0
     },
     "flat": {
      "rotX": 1.570796,
-     "minY": 0.0247,
+     "minY": 0.0998,
      "height": 0.024,
      "restsOnTier": true,
      "forward": true
@@ -128,13 +128,13 @@
     "i": 5,
     "standing": {
      "bottomY": 0,
-     "frontZ": -0.08,
-     "pivotZ": -0.08,
+     "frontZ": -0.02,
+     "pivotZ": -0.02,
      "rotX": 0
     },
     "flat": {
      "rotX": 1.570796,
-     "minY": 0.0494,
+     "minY": 0.1248,
      "height": 0.024,
      "restsOnTier": true,
      "forward": true
@@ -146,13 +146,13 @@
     "i": 6,
     "standing": {
      "bottomY": 0,
-     "frontZ": -0.112,
-     "pivotZ": -0.112,
+     "frontZ": -0.052,
+     "pivotZ": -0.052,
      "rotX": 0
     },
     "flat": {
      "rotX": 1.570796,
-     "minY": 0,
+     "minY": 0.1498,
      "height": 0.024,
      "restsOnTier": true,
      "forward": true
@@ -164,13 +164,13 @@
     "i": 7,
     "standing": {
      "bottomY": 0,
-     "frontZ": -0.144,
-     "pivotZ": -0.144,
+     "frontZ": -0.084,
+     "pivotZ": -0.084,
      "rotX": 0
     },
     "flat": {
      "rotX": 1.570796,
-     "minY": 0.0247,
+     "minY": 0.1747,
      "height": 0.024,
      "restsOnTier": true,
      "forward": true
@@ -182,13 +182,13 @@
     "i": 8,
     "standing": {
      "bottomY": 0,
-     "frontZ": -0.176,
-     "pivotZ": -0.176,
+     "frontZ": -0.116,
+     "pivotZ": -0.116,
      "rotX": 0
     },
     "flat": {
      "rotX": 1.570796,
-     "minY": 0.0494,
+     "minY": 0.1997,
      "height": 0.024,
      "restsOnTier": true,
      "forward": true
@@ -391,6 +391,35 @@
   },
   "pass": true
  },
+ "followups": {
+  "continuity": {
+   "otherIngredients": 11,
+   "hiddenAtAnyTime": [],
+   "coneHiddenDuringChop": true,
+   "pass": true
+  },
+  "knife": {
+   "parentedToHandSocketWhileVisible": true,
+   "maxOriginOffsetFromSocketMM": 2.34,
+   "violations": [],
+   "backInSceneBeforeBeat": true,
+   "pass": true
+  },
+  "slices": {
+   "maxPivotSidewaysMM": 0,
+   "maxPivotForwardMM": 0,
+   "tipsAbout": "bottom-front edge",
+   "pass": true
+  },
+  "cameraRecovery": {
+   "seconds": 0.6,
+   "ease": "power2.inOut",
+   "moved": 1.477,
+   "restsAfter": true,
+   "pass": true
+  },
+  "pass": true
+ },
  "scrub": {
   "frames": 50,
   "distinctFrames": 49,
@@ -422,68 +451,68 @@
   "fullScene": {
    "t0.8": {
     "withShadows": {
-     "calls": 124,
-     "triangles": 94164
+     "calls": 149,
+     "triangles": 110720
     },
     "mainPass": {
-     "calls": 72,
-     "triangles": 53406
+     "calls": 93,
+     "triangles": 66090
     }
    },
    "t2": {
     "withShadows": {
-     "calls": 124,
-     "triangles": 94164
+     "calls": 149,
+     "triangles": 110720
     },
     "mainPass": {
-     "calls": 72,
-     "triangles": 53406
+     "calls": 93,
+     "triangles": 66090
     }
    },
    "t4.5": {
     "withShadows": {
-     "calls": 124,
-     "triangles": 94164
+     "calls": 149,
+     "triangles": 110720
     },
     "mainPass": {
-     "calls": 72,
-     "triangles": 53406
+     "calls": 93,
+     "triangles": 66090
     }
    },
    "t6.45": {
     "withShadows": {
-     "calls": 124,
-     "triangles": 94164
+     "calls": 149,
+     "triangles": 110720
     },
     "mainPass": {
-     "calls": 72,
-     "triangles": 53406
+     "calls": 93,
+     "triangles": 66090
     }
    },
    "t8": {
     "withShadows": {
-     "calls": 152,
-     "triangles": 103766
+     "calls": 188,
+     "triangles": 124538
     },
     "mainPass": {
-     "calls": 100,
-     "triangles": 63008
+     "calls": 132,
+     "triangles": 79908
     }
    },
    "t10": {
     "withShadows": {
-     "calls": 152,
-     "triangles": 104386
+     "calls": 186,
+     "triangles": 124134
     },
     "mainPass": {
-     "calls": 100,
-     "triangles": 63628
+     "calls": 130,
+     "triangles": 79504
     }
    }
   },
   "pass": true,
-  "worstFullSceneMainPassCalls": 100,
-  "worstFullSceneMainPassTriangles": 63628
+  "worstFullSceneMainPassCalls": 132,
+  "worstFullSceneMainPassTriangles": 79908
  },
  "noExternalAssets": {
   "requested": [],

@@ -15,11 +15,11 @@ import * as THREE from 'three';
  * `setSliceTip(i, u)` is a PURE function of u in [0, 1] (the slice's own time since the knife hit it): it assigns ABSOLUTE transforms,
  * reads no previous state, uses no Math.random and no physics. u = 0 is the exact rest pose, so scrubbing backwards stands every slice back up.
  *   rotation.x = PI/2 * bounceOut(u)      thud: falls, hits the board at u ~ 0.36, rebounds twice (never beyond flat, so never into the board)
- *   slide      = easeOutCubic(u / 0.36)   pivot glides from the log to its fan landing spot while it falls
+ *   rise/fan   = easeOutCubic(u / 0.36)   the pivot only rises onto the pile (never slides sideways) while the slice fans about it
  */
 export const BAMBOO = Object.freeze({
-  count: 9, thickness: 0.024, gap: 0.008, rTip: 0.022, rBase: 0.058, zFront: 0.08,
-  fan: Object.freeze({ radius: 0.1, step: 0.16, yaw: 0.8, tierLift: 1.03, tiers: 3 }),
+  count: 9, thickness: 0.024, gap: 0.008, rTip: 0.022, rBase: 0.058, zFront: 0.14,
+  fan: Object.freeze({ step: 0.24, yaw: 1.0, lift: 1.04 }),
   colors: Object.freeze({ core: '#E8D8B0', ring: '#D6C38E', pith: '#DCC892', sheath: '#BFA06E', sheathHi: '#CDB07A' }),
 });
 
@@ -81,9 +81,10 @@ export function createSliceableBamboo({ quality = 'high', envMap = null, count =
     const pivot = new THREE.Group(); pivot.name = 'slice' + i; pivot.rotation.order = 'YXZ'; pivot.add(mesh);
     pivot.position.set(0, 0, zF); pivot.userData = { index: i, rF, rB, front: zF };
     group.add(pivot); slices.push(pivot); rest.push(new THREE.Vector3(0, 0, zF));
-    // fan landing: pivots spread along an arc in front of the log; yaw points each slice outwards; tiers keep overlapping discs from intersecting
-    const th = (i - (count - 1) / 2) * fan.step, rho = fan.radius + 0.35 * rB;
-    land.push({ x: rho * Math.sin(th), y: (i % fan.tiers) * t * fan.tierLift, z: zFront + 0.03 + rho * Math.cos(th) - fan.radius * 0.35, yaw: -th * fan.yaw });
+    // landing: the pivot NEVER moves sideways or forwards -- the slice tips about its bottom-front edge, then fans about that edge like a deck of cards.
+    // Each later slice lands on top of the previous ones (stacked height), so overlapping discs never intersect.
+    const th = (i - (count - 1) / 2) * fan.step;
+    land.push({ x: 0, y: i * t * fan.lift, z: zF, yaw: -th * fan.yaw });
   }
   /** PURE: absolute pose of slice i, u in [0, 1] = time since its chop (0 = standing in the log, 1 = lying flat in the fan). */
   function setSliceTip(i, u) {
