@@ -155,8 +155,7 @@ export function createRawIngredients({ quality = 'high', envMap = null } = {}) {
   function poseAt(part, pRaw) {
     const p = clamp01((pRaw - part.delay) / (1 - part.delay)), r = part.root;
     part.p = p; part.attached = p > 0 && p < DROP.release;
-    if (p <= 0) { r.visible = false; return; }
-    r.visible = true;
+    r.visible = p > 0;   // not yet dropped: hidden, but its transform is still assigned (state is a pure function of p, no stale values)
     const [rx, rz] = part.rest, sl = part.slide, lx = rx + (sl ? sl.dx : 0), lz = rz + (sl ? sl.dz : 0);
     let x = lx, y = 0, z = lz, sy = 1, sxz = 1, yaw = part.yaw + (sl ? sl.dyaw : 0), tum = 0;
     if (p < DROP.release) {   // carried: slides in along the arm axis to hover at height H, held by the paw

@@ -39,7 +39,7 @@ export function createPandaPaws() {
     pawG.push(xf(new THREE.CapsuleGeometry(0.044, 0.15, 6, 14), [0, 0, 0.12], [Math.PI / 2, 0, 0]));
     const sleeve = [tint(xf(new THREE.CylinderGeometry(0.068, 0.072, 0.9, 18, 1, true), [0, 0, 0.67], [Math.PI / 2, 0, 0]), '#E6DFCF'), tint(xf(new THREE.TorusGeometry(0.064, 0.013, 8, 20), [0, 0, 0.22]), '#3F5B7A')];
     const root = new THREE.Group(); root.name = 'paw' + side; root.rotation.order = 'YXZ';
-    const a = new THREE.Mesh(mergeGeometries(pawG), felt), b = new THREE.Mesh(mergeGeometries(sleeve), cloth); b.material.side = THREE.DoubleSide;
+    const a = new THREE.Mesh(mergeGeometries(pawG), felt), b = new THREE.Mesh(mergeGeometries(sleeve), cloth); a.name = 'pawPad'; b.name = 'pawSleeve'; b.material.side = THREE.DoubleSide;
     for (const m of [a, b]) { m.castShadow = true; m.receiveShadow = true; disposables.push(m.geometry); root.add(m); }
     root.visible = false; group.add(root); paws[side] = { root };
   }

@@ -45,10 +45,10 @@
     0.388
    ],
    "z": [
-    0.096,
-    0.304
+    0.066,
+    0.274
    ],
-   "inside": false
+   "inside": true
   },
   "chili_oil_jar": {
    "x": [
@@ -61,12 +61,13 @@
    ],
    "inside": true
   },
-  "pass": false
+  "pass": true
  },
  "scrub": {
   "frames": 41,
   "distinctFrames": 41,
-  "mismatches": [
+  "frameMismatches": [],
+  "stateMismatches": [
    0,
    0.5,
    0.75,
@@ -94,20 +95,20 @@
  },
  "budget": {
   "newContentWithShadowsAndGlassPass": {
-   "calls": 33,
-   "triangles": 17982
+   "calls": 46,
+   "triangles": 31674
   },
   "newContentMainPass": {
-   "calls": 19,
-   "triangles": 8838
+   "calls": 32,
+   "triangles": 20882
   },
   "own": {
-   "triangles": 9194,
+   "triangles": 10842,
    "drawCalls": 20
   },
   "fullSceneAtLineup": {
-   "calls": 80,
-   "triangles": 67304
+   "calls": 121,
+   "triangles": 163064
   },
   "pass": true
  },

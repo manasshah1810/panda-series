@@ -25,6 +25,6 @@ R.budget = await h.page.evaluate(() => { const o = window.__op, res = {}; o.seek
   vis.forEach((v, x) => { x.visible = v; }); res.own = o.raw.stats();
   o.seek(o.MISE_START + 9.5); o.renderer.info.reset(); o.renderer.render(o.scene, o.camera); res.fullSceneAtLineup = { calls: o.renderer.info.render.calls, triangles: o.renderer.info.render.triangles };
   res.pass = res.newContentMainPass.calls <= 50 && res.newContentMainPass.triangles <= 28000; return res; });
-R.vegetarian = await h.page.evaluate(() => { const names = []; window.__op.raw.group.traverse((x) => { if (x.isMesh) names.push(x.name); }); const ok = ['bambooCore', 'bambooSheaths', 'doughBall', 'shiitakeCap', 'shiitakeStem', 'bokChoy', 'jarGlass', 'chiliOil', 'jarLid', 'tag']; return { names, pass: names.every((n) => ok.includes(n)) }; });
+R.vegetarian = await h.page.evaluate(() => { const names = []; window.__op.raw.group.traverse((x) => { if (x.isMesh) names.push(x.name); }); const ok = ['bambooCore', 'bambooSheaths', 'doughBall', 'shiitakeCap', 'shiitakeStem', 'bokChoy', 'jarGlass', 'chiliOil', 'jarLid', 'tag', 'pawPad', 'pawSleeve']; return { names, pass: names.every((n) => ok.includes(n)) }; });
 R.pass = ['boot', 'bounds', 'scrub', 'budget', 'vegetarian'].every((k) => R[k].pass);
 fs.writeFileSync(path.join(out, 'mise-checks.json'), JSON.stringify(R, null, 1)); console.log(JSON.stringify(R, null, 1)); await h.close(); process.exit(R.pass ? 0 : 1);
