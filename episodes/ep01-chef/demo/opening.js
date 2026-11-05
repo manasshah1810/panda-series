@@ -49,9 +49,9 @@ if (AUTO) {
   addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); btn.onclick(); } });
   const loop = (now) => {
     requestAnimationFrame(loop);
-    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    const dt = Math.max(0, Math.min(0.1, (now - last) / 1000)); last = Math.max(last, now);
     if (playing) { t += dt; if (t >= END) { t = END; setPlaying(false); } }
-    op.seek(t); renderer.shadowMap.needsUpdate = !playing || (frame++ & 1) === 0 || dt === 0; renderer.render(scene, camera); tl.value = t; cur.textContent = t.toFixed(1) + ' / ' + END.toFixed(0) + 's';
+    op.seek(Math.max(0, t)); renderer.shadowMap.needsUpdate = !playing || (frame++ & 1) === 0 || dt === 0; renderer.render(scene, camera); tl.value = t; cur.textContent = t.toFixed(1) + ' / ' + END.toFixed(0) + 's';
     // dynamic resolution: keep ~60 fps on slow GPUs, sharpen when there is headroom (hysteresis, adjusted every 20 frames)
     acc += dt * 1000; n++;
     if (n >= 20) { const ms = acc / n; acc = 0; n = 0; if (playing) { let s = scale; if (ms > 19) s = Math.max(DPR_MIN, scale * 0.85); else if (ms < 12 && scale < DPR_MAX) s = Math.min(DPR_MAX, scale * 1.1); if (Math.abs(s - scale) > 0.01) { scale = s; resize(); } } }
