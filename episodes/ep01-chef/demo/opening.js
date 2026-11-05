@@ -21,6 +21,8 @@ scene.add(kitchen.root); kitchen.setLightsOn(1);
 const panda = createPanda({ quality: q.get('quality') || 'medium', style: 'softClay', pose: 'neutralStand', receiveShadow: true, castShadow: true });
 panda.equip(chefOutfit); scene.add(panda.root);
 for (const l of kitchen.lights?.strips ?? []) l.visible = false;   // two faint under-shelf points: invisible at this framing, but they cost every pixel
+// small props (dishes, utensils, pods) barely register in the shadow map: skip them in the shadow pass (fewer draw calls)
+{ const bb = new THREE.Box3(), sz = new THREE.Vector3(); kitchen.root.traverse((o) => { if (!o.isMesh || !o.castShadow) return; if (o.isInstancedMesh) { o.castShadow = false; return; } bb.setFromObject(o).getSize(sz); if (Math.max(sz.x, sz.y, sz.z) < 0.45) o.castShadow = false; }); }
 const env = scene.environment ?? null;
 const knife = createKnife({ envMap: env }); const title = createWoodenTitle({ envMap: env }); scene.add(title.group);
 const op = createOpening({ scene, camera, kitchen, panda, knife, title, marks, renderer });

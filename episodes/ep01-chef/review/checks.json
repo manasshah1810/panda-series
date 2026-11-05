@@ -42,52 +42,52 @@
  "drawCalls": {
   "t0": {
    "mainPass": 87,
-   "withShadows": 153
+   "withShadows": 139
   },
   "t4.4": {
    "mainPass": 93,
-   "withShadows": 156
+   "withShadows": 142
   },
   "t8": {
    "mainPass": 96,
-   "withShadows": 156
+   "withShadows": 142
   }
  },
  "separation": {
   "t0": {
-   "pandaPx": 30419,
-   "brightFurMedian": 0.7085725490196078,
+   "pandaPx": 30442,
+   "brightFurMedian": 0.7069992156862744,
    "bgMedianBehindPanda": 0.6511803921568629,
    "ok": false
   },
   "t2": {
-   "pandaPx": 32518,
+   "pandaPx": 32517,
    "brightFurMedian": 0.7101231372549018,
    "bgMedianBehindPanda": 0.653353725490196,
    "ok": false
   },
   "t3.6": {
-   "pandaPx": 30854,
-   "brightFurMedian": 0.7220611764705882,
+   "pandaPx": 30812,
+   "brightFurMedian": 0.7218721568627451,
    "bgMedianBehindPanda": 0.6345796078431372,
    "ok": false
   },
   "t4.2": {
-   "pandaPx": 18351,
-   "brightFurMedian": 0.6892949019607844,
-   "bgMedianBehindPanda": 0.5875364705882353,
+   "pandaPx": 18315,
+   "brightFurMedian": 0.6888635294117647,
+   "bgMedianBehindPanda": 0.58344,
    "ok": false
   },
   "t5": {
-   "pandaPx": 36567,
-   "brightFurMedian": 0.847243137254902,
-   "bgMedianBehindPanda": 0.5315560784313725,
+   "pandaPx": 36500,
+   "brightFurMedian": 0.8466925490196079,
+   "bgMedianBehindPanda": 0.5265058823529412,
    "ok": true
   },
   "t7": {
-   "pandaPx": 26803,
-   "brightFurMedian": 0.8315568627450979,
-   "bgMedianBehindPanda": 0.4988243137254902,
+   "pandaPx": 26392,
+   "brightFurMedian": 0.8340941176470589,
+   "bgMedianBehindPanda": 0.44837333333333335,
    "ok": true
   }
  }

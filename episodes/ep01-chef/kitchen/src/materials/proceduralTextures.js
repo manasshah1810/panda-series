@@ -119,7 +119,7 @@ export function bambooTexture(size, { seed = 31, base = '#D9C58E', dark = '#B79A
   }), { aniso: 8 });
 }
 /** Handmade glazed tile: 6 x 4 tiles per texture, every tile its own tone, lighter glaze at the edge pooling, slightly uneven grout. */
-export function handTileTexture(size, { seed = 41, base = '#62785A', grout = '#8C8A7B' } = {}) {
+export function handTileTexture(size, { seed = 41, base = '#4E6347', grout = '#8C8A7B' } = {}) {
   const B = rawHex(base), G = rawHex(grout), NX = 14, NY = 14;
   return finish(paint(size, (u, v) => {
     const ci = Math.floor(u * NX), cj = Math.floor(v * NY), lu = u * NX - ci, lv = v * NY - cj, tone = hash(ci, cj, seed);
