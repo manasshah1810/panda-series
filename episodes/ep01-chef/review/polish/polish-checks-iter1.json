@@ -1,0 +1,151 @@
+{
+ "errors": {
+  "gl": 0,
+  "console": [],
+  "pass": true
+ },
+ "budget": {
+  "own": {
+   "triangles": 15180,
+   "drawCalls": 13
+  },
+  "rendererInfoBowlOnly": {
+   "calls": 25,
+   "triangles": 32592
+  },
+  "rendererInfoNoShadow": {
+   "calls": 24,
+   "triangles": 30272
+  },
+  "pass": true
+ },
+ "noodles": {
+  "strands": 18,
+  "vertsTotal": 12960,
+  "vertsCounted": 12960,
+  "submergedVertexFraction": 0.741,
+  "topLayerSubmergedFraction": 0.612,
+  "radius": 0.0048,
+  "brothY": 0.0645,
+  "note": "top layer centreline sits 0.1 diameter below plane => 60% of tube height submerged",
+  "pass": true
+ },
+ "floating": {
+  "parts": {
+   "leafStemConnected": true,
+   "brothBase": {
+    "insideBowlXZ": true,
+    "touchesBody": true
+   },
+   "broth": {
+    "insideBowlXZ": true,
+    "touchesBody": true
+   },
+   "noodles": {
+    "insideBowlXZ": true,
+    "touchesBody": true
+   },
+   "menma": {
+    "insideBowlXZ": true,
+    "touchesBody": true
+   },
+   "shiitake": {
+    "insideBowlXZ": true,
+    "touchesBody": true
+   },
+   "bokChoyStems": {
+    "insideBowlXZ": true,
+    "touchesBody": true
+   },
+   "bokChoyLeaves": {
+    "insideBowlXZ": false,
+    "touchesBody": true
+   },
+   "cornBeads": {
+    "insideBowlXZ": true,
+    "touchesBody": true
+   },
+   "scallionRings": {
+    "insideBowlXZ": true,
+    "touchesBody": true
+   },
+   "nori": {
+    "insideBowlXZ": true,
+    "touchesBody": true
+   },
+   "oilBeads": {
+    "insideBowlXZ": true,
+    "touchesBody": true
+   }
+  },
+  "instanced": {
+   "cornBeads": {
+    "count": 14,
+    "maxRadius": 0.0775,
+    "minY": 0.0669,
+    "maxY": 0.073
+   },
+   "scallionRings": {
+    "count": 7,
+    "maxRadius": 0.0862,
+    "minY": 0.0657,
+    "maxY": 0.0691
+   },
+   "oilBeads": {
+    "count": 22,
+    "maxRadius": 0.0966,
+    "minY": 0.0649,
+    "maxY": 0.0652
+   }
+  },
+  "bodyBox": [
+   [
+    2.619499996304512,
+    1,
+    1.169499996304512
+   ],
+   [
+    2.880500003695488,
+    1.0984999984502792,
+    1.430500003695488
+   ]
+  ],
+  "leavesOverRimByDesign": true,
+  "pass": true
+ },
+ "vegetarian": {
+  "parts": [
+   "bowlBody",
+   "brothBase",
+   "broth",
+   "noodles",
+   "menma",
+   "shiitake",
+   "bokChoyStems",
+   "bokChoyLeaves",
+   "cornBeads",
+   "scallionRings",
+   "nori",
+   "oilBeads",
+   "steam"
+  ],
+  "forbidden": [],
+  "pass": true
+ },
+ "whiteArtifacts": {
+  "nearWhitePixelsInBroth": 0,
+  "largestComponent": 0,
+  "pureWhitePixels": 0,
+  "pureBlackPixels": 0,
+  "pass": true
+ },
+ "noodlesUnderBroth": {
+  "noodlePixelsWithoutBroth": 37559,
+  "stillVisibleThroughBroth": 20420,
+  "tintedByBroth": 20482,
+  "visibleFraction": 0.544,
+  "tintedFraction": 0.545,
+  "pass": true
+ },
+ "pass": true
+}

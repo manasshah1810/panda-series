@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 /**
- * Bamboo-Shoot Ramen hero bowl (Episode 1, Beat 1). 100% plant-based: wheat noodles (egg-free), amber vegetable broth,
- * menma, braised shiitake, baby bok choy, sweet corn, scallion rings and nori. NO egg, meat, fish or seafood.
+ * Bamboo-Shoot Ramen hero bowl (Episode 1, Beat 1). 100% plant-based: wheat noodles (egg-free), amber vegetable broth
+ * (opaque base + transmissive surface, noodles 60% submerged), menma, braised shiitake, baby bok choy, sweet corn, scallion rings, nori and chili-oil droplets. NO egg, meat, fish or seafood.
  *
  * Fully procedural (no files, no textures). Units are scene metres: the bowl is ~0.26 wide and sits with its foot on y = 0 of `group`.
  * `setTime(t)` (t in 0..1 = progress of the hero beat) is a pure function: steam, broth ripples and everything else are computed from
@@ -13,9 +13,10 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
  * @returns {{group:THREE.Group, setTime:(t:number)=>void, setReveal:(k:number)=>void, dispose:()=>void, stats:()=>{triangles:number,drawCalls:number}}}
  */
 export function createRamenBowl({ quality = 'high', scale = 1.0, envMap = null } = {}) {
-  const Q = { high: { seg: 44, noodles: 10, nSeg: 32, corn: [14, 10, 7], rings: 16, steam: 12, leaf: [12, 7] },
-              medium: { seg: 32, noodles: 8, nSeg: 24, corn: [14, 8, 6], rings: 14, steam: 10, leaf: [9, 6] },
-              low: { seg: 24, noodles: 6, nSeg: 20, corn: [12, 7, 5], rings: 10, steam: 8, leaf: [7, 5] } }[quality] ?? null;
+  const Q = { high: { seg: 40, cap: 72, noodles: 12, deep: 6, nSeg: 20, stem: 10, leaf: [12, 7], bead: [8, 6], scal: 7, oil: 22, steam: 12 },
+              medium: { seg: 32, cap: 48, noodles: 9, deep: 4, nSeg: 16, stem: 8, leaf: [8, 5], bead: [7, 5], scal: 7, oil: 18, steam: 10 },
+              low: { seg: 24, cap: 36, noodles: 7, deep: 3, nSeg: 12, stem: 6, leaf: [6, 4], bead: [6, 4], scal: 6, oil: 12, steam: 8 } }[quality] ?? null;
+  const BROTH_OPTICS = { thickness: 0.03, attenuationDistance: 0.05 };   // spec asked for 0.4: at bowl scale (0.26 m wide) that samples the table behind the bowl, so it is scaled to the bowl
   if (!Q) throw new Error('createRamenBowl: unknown quality ' + quality);
 
   const rng = mulberry32(20240611), R = (a, b) => a + (b - a) * rng();
@@ -48,31 +49,54 @@ export function createRamenBowl({ quality = 'high', scale = 1.0, envMap = null }
   const innerR = (y) => { for (let i = 1; i < innerWall.length; i++) { const a = innerWall[i - 1], b = innerWall[i]; if ((a.y - y) * (b.y - y) <= 0 && a.y !== b.y) return a.x + (b.x - a.x) * ((y - a.y) / (b.y - a.y)); } return innerWall[0].x; };
   const BROTH_Y = 0.0645, BROTH_R = innerR(BROTH_Y) + 0.0025;
 
-  // ------------------------------------------------------------------ broth: glossy amber, concentric oil ripples, depth falloff (pure function of uT)
+  // ------------------------------------------------------------------ polar layout of the toppings (angle a measured from +x towards +z, radius r from the bowl axis)
+  const P2 = (a, r) => [Math.cos(a) * r, Math.sin(a) * r];
+  const D2R = Math.PI / 180;
+  const LAY = { menma: 190 * D2R, bok: -38 * D2R, corn: -112 * D2R, nori: -95 * D2R, shiitake: 52 * D2R };
+  /** ripple sources [x, z, radius]: the broth shader draws concentric chili-oil ripples around each one (max 8) */
+  const RIP = [[...P2(LAY.shiitake, 0.082), 0.037], [...P2(LAY.menma, 0.078), 0.034], [...P2(LAY.bok, 0.05), 0.02], [...P2(LAY.bok, 0.088), 0.026],
+               [...P2(LAY.corn, 0.058), 0.03], [...P2(LAY.nori, 0.099), 0.03]];
+
+  // ------------------------------------------------------------------ broth, layer 1: deep amber-brown base disc (what the submerged noodles rest on)
+  const BASE_Y = 0.040;
+  { const g = new THREE.CircleGeometry(innerR(BASE_Y) - 0.0008, 40); g.rotateX(-Math.PI / 2);
+    add(g, mat({ color: '#3D1E0B', roughness: 0.2, metalness: 0, envMapIntensity: 0.3 }), 'brothBase').position.y = BASE_Y; }
+
+  // ------------------------------------------------------------------ broth, layer 2: transmissive surface (MeshPhysicalMaterial) + procedural ripples around the toppings
   const brothGeo = new THREE.CircleGeometry(BROTH_R, 64); brothGeo.rotateX(-Math.PI / 2);
-  const brothMat = mat({ color: '#B8671F', roughness: 0.28, metalness: 0.18, envMapIntensity: 0.45 });
-  const brothU = { uT: { value: 0 }, uR: { value: BROTH_R } };
+  const brothMat = new THREE.MeshPhysicalMaterial({ color: '#9A5A22', roughness: 0.15, metalness: 0, transmission: 0.45, ior: 1.33, thickness: BROTH_OPTICS.thickness,
+    attenuationColor: new THREE.Color('#8B4513'), attenuationDistance: BROTH_OPTICS.attenuationDistance, envMap, envMapIntensity: 0.4, specularIntensity: 1 });
+  disposables.push(brothMat);
+  const brothU = { uT: { value: 0 }, uR: { value: BROTH_R }, uRip: { value: Array.from({ length: 8 }, (_, i) => new THREE.Vector3(...(RIP[i] ?? [0, 0, 0]))) } };
   brothMat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, brothU);
-    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vLoc; varying vec3 vDirW;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvLoc = position; vDirW = normalize(mat3(modelMatrix) * vec3(position.x, 0.0, position.z) + vec3(1e-6));');
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uT; uniform float uR; varying vec3 vLoc; varying vec3 vDirW;')
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vLoc; varying vec3 vTx; varying vec3 vBz; varying vec3 vNy;')
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+        vLoc = position; vTx = normalize(normalMatrix * vec3(1.0, 0.0, 0.0)); vBz = normalize(normalMatrix * vec3(0.0, 0.0, 1.0)); vNy = normalize(normalMatrix * vec3(0.0, 1.0, 0.0));`);
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uT; uniform float uR; uniform vec3 uRip[8]; varying vec3 vLoc; varying vec3 vTx; varying vec3 vBz; varying vec3 vNy;')
       .replace('#include <color_fragment>', `#include <color_fragment>
         float rN = clamp(length(vLoc.xz) / uR, 0.0, 1.0);
-        vec3 deepC = vec3(0.30, 0.115, 0.022), shalC = vec3(0.86, 0.46, 0.12);
-        vec3 brothC = mix(deepC, shalC, smoothstep(0.0, 1.05, rN * 0.9 + 0.12));       // deeper toward the middle, lighter and shallower at the wall
+        vec2 dR = vLoc.xz / (length(vLoc.xz) + 1e-5);
         float ph = rN * 5.5 - uT * 0.9;
-        float ring = pow(0.5 + 0.5 * sin(ph * 6.2831853), 7.0) * (0.35 + 0.65 * smoothstep(0.1, 0.9, rN));   // thin concentric oil rings
-        float ring2 = pow(0.5 + 0.5 * sin((rN * 11.0 + 0.37 - uT * 1.4) * 6.2831853), 14.0) * 0.5;
-        brothC += vec3(0.95, 0.62, 0.20) * (ring * 0.38 + ring2 * 0.22);
-        brothC *= 1.0 - 0.5 * smoothstep(0.86, 1.0, rN);                                // meniscus shade where the broth meets the glaze
+        float ring = pow(0.5 + 0.5 * sin(ph * 6.2831853), 7.0) * (0.3 + 0.7 * smoothstep(0.1, 0.9, rN));   // thin concentric oil rings
+        // concentric ripples radiating from every topping: height h = exp(-k e) sin(w e - t); we need its gradient for the normal
+        vec2 rg = vec2(0.0); float crest = 0.0;
+        for (int i = 0; i < 8; i++) {
+          vec3 c = uRip[i]; if (c.z < 1e-4) continue;
+          vec2 d = vLoc.xz - c.xy; float r = length(d) + 1e-5, e = max(r - c.z, 0.0);
+          float env = exp(-e * 70.0) * smoothstep(0.0, 0.004, e), arg = e * 520.0 - uT * 5.0, s = sin(arg);
+          rg += (d / r) * env * (520.0 * cos(arg) - 70.0 * s); crest += env * s;
+        }
+        vec3 deepC = vec3(0.34, 0.13, 0.03), shalC = vec3(0.66, 0.32, 0.08);
+        vec3 brothC = mix(deepC, shalC, smoothstep(0.0, 1.05, rN * 0.9 + 0.12));
+        brothC += vec3(0.95, 0.60, 0.20) * (ring * 0.22 + max(crest, 0.0) * 0.16);
+        brothC *= 1.0 - 0.45 * smoothstep(0.86, 1.0, rN);                       // meniscus shade where the broth meets the glaze
         diffuseColor.rgb = brothC;`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-        float gr = (cos(ph * 6.2831853) * 0.5 + cos((rN * 11.0 + 0.37 - uT * 1.4) * 6.2831853) * 0.28) * 0.07;
-        vec3 nW = normalize(vec3(-vDirW.x * gr, 1.0, -vDirW.z * gr));
-        normal = normalize(mat3(viewMatrix) * nW);`);
+        vec2 slope = rg * 0.00026 + dR * cos(ph * 6.2831853) * 0.028;
+        normal = normalize(vNy - slope.x * vTx - slope.y * vBz);`);
   };
-  brothMat.customProgramCacheKey = () => 'ramenBroth1';
+  brothMat.customProgramCacheKey = () => 'ramenBrothPhys2';
   const broth = add(brothGeo, brothMat, 'broth'); broth.position.y = BROTH_Y;
 
   // ------------------------------------------------------------------ helpers for merged procedural parts
@@ -86,7 +110,11 @@ export function createRamenBowl({ quality = 'high', scale = 1.0, envMap = null }
   };
   const merged = (list) => { const g = mergeGeometries(list); list.forEach((x) => x.dispose()); return g; };
   const M4 = (p, e = [0, 0, 0], s = [1, 1, 1]) => new THREE.Matrix4().compose(new THREE.Vector3(...p), new THREE.Quaternion().setFromEuler(new THREE.Euler(...e, 'YXZ')), new THREE.Vector3(...s));
-  const surf = (x, z) => 0.0665 + 0.019 * Math.max(0, 1 - (x * x + z * z) / (0.105 * 0.105));   // noodle mound surface height
+  const ss = THREE.MathUtils.smoothstep;
+  /** smooth the normals of coincident vertices (lathe seams, poles): computeVertexNormals alone leaves a visible lighter/darker seam line */
+  const weld = (g) => { const p = g.attributes.position, n = g.attributes.normal, map = new Map(), key = (i) => Math.round(p.getX(i) * 1e5) + ',' + Math.round(p.getY(i) * 1e5) + ',' + Math.round(p.getZ(i) * 1e5);
+    for (let i = 0; i < p.count; i++) { const k = key(i), a = map.get(k) ?? [0, 0, 0, []]; a[0] += n.getX(i); a[1] += n.getY(i); a[2] += n.getZ(i); a[3].push(i); map.set(k, a); }
+    for (const [x, y, z, ids] of map.values()) { const l = Math.hypot(x, y, z) || 1; for (const i of ids) n.setXYZ(i, x / l, y / l, z / l); } return g; };
 
   /** tapered tube with an elliptical cross-section: broad axis = horizontal side vector, thin axis = the other. */
   function sweep(points, radius, { radial = 6, segs = 16, flat = 1, color = null } = {}) {
@@ -103,97 +131,135 @@ export function createRamenBowl({ quality = 'high', scale = 1.0, envMap = null }
     return part(g, null, color);
   }
 
-  // ------------------------------------------------------------------ noodles: wavy egg-free wheat strands heaped in the middle
-  { const list = [], tone = [col('#E6C98A'), col('#DDBE7C'), col('#EBD29B')];
-    for (let i = 0; i < Q.noodles; i++) {
-      const th0 = R(0, Math.PI * 2), dir = rng() < 0.5 ? -1 : 1, rho = R(0.0, 0.075), sweepA = R(1.6, 2.6), ph = R(0, 6.28), pts = [];
-      for (let k = 0; k <= 9; k++) { const s = k / 9, th = th0 + dir * sweepA * s, rr = Math.min(0.1, Math.max(0.0, rho + 0.02 * Math.sin(s * 9 + ph))), x = Math.cos(th) * rr, z = Math.sin(th) * rr;
-        pts.push([x, surf(x, z) - 0.003 + 0.006 * Math.sin(s * 14 + ph * 1.7) + R(0, 0.002), z]); }
-      list.push(sweep(pts, 0.0042, { radial: 5, segs: Q.nSeg, color: tone[i % 3] }));
+  // ------------------------------------------------------------------ noodles: warm ivory-yellow tubes, the top layer 60% submerged in the transmissive broth, deeper layers fully under it
+  const NOODLE_R = 0.0048, NOODLE_SUBMERGED = 0.6;
+  { const list = [], tone = [col('#F3E5AB'), col('#EDDC9F'), col('#F7EBB7')];
+    const cap = (u) => NOODLE_R * Math.sqrt(1 - (1 - Math.min(1, u / 0.07, (1 - u) / 0.07)) ** 2);   // rounded, closed strand ends
+    const info = [], strand = (yBase, amp, i, color, chord = false, layer = 'top') => {
+      const th0 = R(0, Math.PI * 2), dir = rng() < 0.5 ? -1 : 1, rho = R(0.026, 0.074), sweepA = R(1.8, 2.8), ph = R(0, 6.28), pts = [];
+      for (let k = 0; k <= 8; k++) { const s = k / 8; let x, z;
+        if (chord) { const a = th0 + (s - 0.5) * 2.6 * dir, rr = 0.074 * (1 - 0.55 * Math.sin(Math.PI * s)), l = 0.012 * Math.sin(s * 6.3 + ph); x = Math.cos(a) * rr - Math.sin(a) * l; z = Math.sin(a) * rr + Math.cos(a) * l; }
+        else { const th = th0 + dir * sweepA * s, rr = Math.min(0.09, Math.max(0.02, rho + 0.012 * Math.sin(s * 7 + ph))); x = Math.cos(th) * rr; z = Math.sin(th) * rr; }
+        pts.push([x, yBase + amp * Math.sin(s * 11 + ph * 1.7), z]); }
+      const g = sweep(pts, cap, { radial: 6, segs: Q.nSeg, color }); list.push(g); info.push({ layer, n: g.attributes.position.count });
+    };
+    // surface layer: tube centre sits 0.1 diameter below the plane, i.e. 60% of the tube is under the surface (+-0.0013 of wave so some coils dip, some peek)
+    const yTop = BROTH_Y - (NOODLE_SUBMERGED - 0.5) * 2 * NOODLE_R;
+    for (let i = 0; i < Q.noodles; i++) strand(yTop, 0.0013, i, tone[i % 3], i % 3 === 2);   // every third strand is a chord that crosses the middle of the bowl
+    for (let i = 0; i < Q.deep; i++) strand(BROTH_Y - 0.0068 - 0.0042 * (i % 3), 0.0012, i, tone[(i + 1) % 3].clone().multiplyScalar(0.92), false, 'deep');
+    const ng = merged(list); ng.userData.strands = info; ng.userData.radius = NOODLE_R;   // per-strand vertex ranges, read by the verification script
+    add(ng, mat({ vertexColors: true, roughness: 0.35, metalness: 0, envMapIntensity: 0.3 }), 'noodles'); }
+
+  // ------------------------------------------------------------------ menma: 4 overlapping bevelled slices fanned in an arc, horizontal ridge striations
+  { const list = [], MENMA = col('#C89D5C'), L = 0.05, W = 0.016, T = 0.0045, nx = 20, nz = 4, bev = 0.0035, per = 0.0095, amp = 0.0004;
+    /** closed bevelled slab: top/bottom height fields h(x,z) (rounded edge) + ridges across the length; border vertices are shared so the bevel shades smoothly */
+    const slab = () => {
+      const pos = [], idx = [], top = [], bot = [], hh = (x, z) => { const e = Math.min(L / 2 - Math.abs(x), W / 2 - Math.abs(z)), t = Math.min(1, Math.max(0, e / bev)); return { h: (T / 2) * Math.sqrt(1 - (1 - t) * (1 - t)), t }; };
+      for (let j = 0; j <= nz; j++) for (let i = 0; i <= nx; i++) { const x = -L / 2 + (L * i) / nx, z = -W / 2 + (W * j) / nz, { h, t } = hh(x, z); top.push(pos.length / 3); pos.push(x, h + amp * t * Math.sin((2 * Math.PI * x) / per), z); }
+      for (let j = 0; j <= nz; j++) for (let i = 0; i <= nx; i++) { const x = -L / 2 + (L * i) / nx, z = -W / 2 + (W * j) / nz, { h, t } = hh(x, z); if (i === 0 || i === nx || j === 0 || j === nz) bot.push(top[j * (nx + 1) + i]); else { bot.push(pos.length / 3); pos.push(x, -h + 0.4 * amp * t * Math.sin((2 * Math.PI * x) / per), z); } }
+      for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) { const a = j * (nx + 1) + i, b = a + 1, c = a + nx + 1, d = c + 1; idx.push(top[a], top[c], top[b], top[b], top[c], top[d]); idx.push(bot[a], bot[b], bot[c], bot[b], bot[d], bot[c]); }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); return g;
+    };
+    const base = slab(), tmp = new THREE.Color(), lean = 12 * D2R, r0 = 0.056;
+    for (let k = 0; k < 4; k++) {
+      const a = LAY.menma + (k - 1.5) * 0.21, [dx, dz] = [Math.cos(a), Math.sin(a)], shade = 0.94 + 0.05 * (k % 2) + 0.02 * k, cx = dx * (r0 + (L / 2) * Math.cos(lean)), cz = dz * (r0 + (L / 2) * Math.cos(lean));
+      const cy = BROTH_Y - 0.0008 + k * 0.0014 + (L / 2) * Math.sin(lean);
+      const colorFn = (x) => tmp.setRGB(MENMA.r * shade, MENMA.g * shade, MENMA.b * shade).multiplyScalar(1 - 0.075 * (0.5 + 0.5 * Math.cos((2 * Math.PI * x) / per))).clone();   // darker valleys = striations
+      list.push(part(base, M4([cx, cy, cz], [0, -a, lean]), colorFn));
     }
-    add(merged(list), mat({ vertexColors: true, roughness: 0.42, metalness: 0 }), 'noodles'); }
+    base.dispose(); add(merged(list), mat({ vertexColors: true, roughness: 0.4, metalness: 0, envMapIntensity: 0.3 }), 'menma'); }
 
-  // ------------------------------------------------------------------ menma (bamboo shoots): fan of 5 chamfered, 3-segment slices, #D4A359
-  { const list = [], MENMA = col('#D4A359'), segL = 0.019, gap = 0.0016, w = 0.017, th = 0.0055;
-    const shape = new THREE.Shape(), hx = segL / 2, hy = w / 2, rc = 0.0025;
-    shape.moveTo(-hx + rc, -hy); shape.lineTo(hx - rc, -hy); shape.absarc(hx - rc, -hy + rc, rc, -Math.PI / 2, 0); shape.lineTo(hx, hy - rc); shape.absarc(hx - rc, hy - rc, rc, 0, Math.PI / 2); shape.lineTo(-hx + rc, hy); shape.absarc(-hx + rc, hy - rc, rc, Math.PI / 2, Math.PI); shape.lineTo(-hx, -hy + rc); shape.absarc(-hx + rc, -hy + rc, rc, Math.PI, Math.PI * 1.5);
-    const seg = new THREE.ExtrudeGeometry(shape, { depth: th, bevelEnabled: true, bevelThickness: 0.0012, bevelSize: 0.0013, bevelSegments: 2, curveSegments: 3 }); seg.translate(0, 0, -th / 2); seg.rotateX(-Math.PI / 2);
-    for (let k = 0; k < 5; k++) {
-      const phi = Math.PI * 1.22 + (k - 2) * 0.2, rad = 0.066 + 0.002 * (k % 2), lift = 0.004 * k;   // fan around the back-left of the bowl, leaning on the wall
-      const cx = Math.cos(phi) * rad, cz = Math.sin(phi) * rad, cy = surf(cx, cz) + 0.0085 + lift;
-      for (let s = -1; s <= 1; s++) {
-        const shade = 1 + (s === 0 ? 0.06 : -0.03) + (k % 2) * 0.03, m = M4([s * (segL + gap), 0, 0]);
-        const g = part(seg, m, new THREE.Color(MENMA.r * shade, MENMA.g * shade, MENMA.b * shade));
-        // slice frame: long axis radial-outward, tipped up toward the rim
-        g.applyMatrix4(M4([cx, cy, cz], [0, -phi, 0.0], [1, 1, 1]).multiply(M4([0, 0, 0], [0, 0, 0.3])));
-        list.push(g);
-      }
-    }
-    seg.dispose(); add(merged(list), mat({ vertexColors: true, roughness: 0.4, metalness: 0 }), 'menma'); }
+  // ------------------------------------------------------------------ braised shiitake: mahogany dome, two crossing recessed notches (+) with lighter braised flesh inside, tilted against the rim
+  const SHI = { R: 0.0328, notchHW: 0.0043, depth: 0.0019 };
+  { const cap = [[0, 0.0205], [0.008, 0.0202], [0.016, 0.0188], [0.023, 0.0162], [0.0285, 0.0122], [0.0318, 0.0075], [0.0328, 0.0035], [0.0305, 0.0006], [0.026, 0.0], [0.014, 0.0012], [0, 0.0022]];
+    const g0 = new THREE.LatheGeometry(spline2(cap.slice().reverse(), 14), Q.cap);   // bottom -> crown so the normals face outward
+    const MAH = col('#331B10'), FLESH = col('#704832'), GILL = col('#4A2C1B'), tmp = new THREE.Color();
+    // groove weight 0..1: two perpendicular V-ish grooves (along x and z), stopping smoothly before the flank
+    const groove = (x, z, y, ny) => { const w = Math.max(Math.max(0, 1 - Math.abs(z) / SHI.notchHW), Math.max(0, 1 - Math.abs(x) / SHI.notchHW)); return w * (1 - ss(Math.hypot(x, z), 0.0225, 0.0275)) * ss(ny, 0.62, 0.9); };
+    { const p = g0.attributes.position, n = g0.attributes.normal, c = new Float32Array(p.count * 3);
+      for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), ny = n.getY(i), w = groove(x, z, y, ny);
+        tmp.copy(ny < -0.3 && y < 0.007 ? GILL : MAH); c[i * 3] = tmp.r; c[i * 3 + 1] = tmp.g; c[i * 3 + 2] = tmp.b;
+        if (w > 0) { const d = SHI.depth * ss(w, 0.0, 0.5); p.setXYZ(i, x - n.getX(i) * d, y - ny * d, z - n.getZ(i) * d); } }
+      g0.setAttribute('color', new THREE.BufferAttribute(c, 3)); g0.computeVertexNormals(); weld(g0); }
+    const g1 = part(g0, null, null);
+    const shiMat = mat({ vertexColors: true, roughness: 0.34, metalness: 0.02, envMapIntensity: 0.3 });
+    shiMat.onBeforeCompile = (sh) => {   // the two crossing notches are painted per pixel (exact straight edges) on top of the carved geometry
+      sh.uniforms.uFlesh = { value: FLESH.clone() };
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vCap;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvCap = position;');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec3 uFlesh; varying vec3 vCap;')
+        .replace('#include <color_fragment>', `#include <color_fragment>
+          float gx = 1.0 - smoothstep(${(SHI.notchHW * 0.82).toFixed(5)}, ${SHI.notchHW.toFixed(5)}, abs(vCap.x)), gz = 1.0 - smoothstep(${(SHI.notchHW * 0.82).toFixed(5)}, ${SHI.notchHW.toFixed(5)}, abs(vCap.z));
+          float gm = max(gx, gz) * (1.0 - smoothstep(0.0225, 0.0275, length(vCap.xz))) * smoothstep(0.011, 0.014, vCap.y);
+          float ex = smoothstep(${(SHI.notchHW * 0.55).toFixed(5)}, ${SHI.notchHW.toFixed(5)}, abs(vCap.x)) * gx, ez = smoothstep(${(SHI.notchHW * 0.55).toFixed(5)}, ${SHI.notchHW.toFixed(5)}, abs(vCap.z)) * gz;
+          float wall = (gx > 0.0 && gz > 0.0) ? min(ex, ez) : max(ex, ez);       // shaded walls of the cut (not where the two grooves cross)
+          diffuseColor.rgb = mix(diffuseColor.rgb, uFlesh, gm) * (1.0 - 0.4 * wall * (1.0 - smoothstep(0.0225, 0.0275, length(vCap.xz))));`);
+    };
+    shiMat.customProgramCacheKey = () => 'ramenShiitake1';
+    const mush = add(g1, shiMat, 'shiitake');
+    const [sx, sz] = P2(LAY.shiitake, 0.082), tang = new THREE.Vector3(-Math.sin(LAY.shiitake), 0, Math.cos(LAY.shiitake)), rad = new THREE.Vector3(Math.cos(LAY.shiitake), 0, Math.sin(LAY.shiitake));
+    let qt = new THREE.Quaternion().setFromAxisAngle(tang, 12 * D2R); if (rad.clone().applyQuaternion(qt).y < 0) qt = new THREE.Quaternion().setFromAxisAngle(tang, -12 * D2R);   // outer edge UP (resting on the rim), inner edge dips into the broth
+    mush.quaternion.copy(qt).multiply(new THREE.Quaternion().setFromAxisAngle(UP, 0.35)); mush.position.set(sx, BROTH_Y + 0.0036, sz); }
 
-  // ------------------------------------------------------------------ braised shiitake: lathe dome, two crossed v-notches, short thick stem
-  { const cap = [[0.0005, 0.0205], [0.008, 0.0202], [0.016, 0.0188], [0.023, 0.0162], [0.0285, 0.0122], [0.0318, 0.0075], [0.0328, 0.0035], [0.0305, 0.0006], [0.026, 0.0], [0.014, 0.0012], [0.0005, 0.0022]];
-    const g0 = new THREE.LatheGeometry(spline2(cap.slice().reverse(), 16), Math.round(Q.seg * 1.25))   // bottom -> crown, so normals face outward; g0.translate(0, 0.0075, 0);
-    const MAH = col('#3B2317'), FLESH = col('#D9B88A'), GILL = col('#B88B5E'), notchHW = 0.0062, depth = 0.0046, tmp = new THREE.Color(), ss = THREE.MathUtils.smoothstep;
-    // 0..1 notch weight: two crossed V-grooves on the crown, faded out smoothly toward the cap's flank so the cut has no ragged edge
-    const notch = (x, y, z, ny) => { let d = 0; for (const a of [Math.PI / 4, (3 * Math.PI) / 4]) d = Math.max(d, 1 - Math.abs(x * Math.sin(a) - z * Math.cos(a)) / notchHW); return Math.max(0, d) * ss(ny, 0.2, 0.7) * ss(y - 0.0075, 0.006, 0.012); };
-    { const p = g0.attributes.position, n = g0.attributes.normal, v = new THREE.Vector3();   // carve (on the indexed lathe so normals stay smooth): push crown vertices inward along their normals
-      for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), d = notch(x, y, z, n.getY(i)); if (d <= 0) continue;
-        v.set(n.getX(i), n.getY(i), n.getZ(i)).multiplyScalar(-depth * d); p.setXYZ(i, x + v.x, y + v.y, z + v.z); }
-      const ny0 = Float32Array.from(n.array); g0.computeVertexNormals(); g0.userData.ny0 = ny0; }
-    const capG = part(g0, null, (x, y, z, nx, ny) => { const under = ny < -0.35 && y - 0.0075 < 0.006; return tmp.copy(under ? GILL : MAH).lerp(FLESH, ss(notch(x, y, z, 1), 0.5, 0.9)).clone(); });
-    const stemG = part(new THREE.LatheGeometry([[0.0005, 0.0], [0.012, 0.0], [0.0135, 0.006], [0.0115, 0.0125], [0.0105, 0.016], [0.0005, 0.016]].map((p) => new THREE.Vector2(...p)), 16), M4([0.0085, -0.0075, 0.0], [0, 0, -0.25]), (x, y) => tmp.copy(FLESH).lerp(col('#A9825A'), 0.3 + y * 8).clone());
-    const g = merged([capG, stemG]);
-    const mush = add(g, mat({ vertexColors: true, roughness: 0.36, metalness: 0.02, envMapIntensity: 0.3 }), 'shiitake');
-    mush.position.set(0.045, surf(0.045, 0.035) - 0.006, 0.035); mush.rotation.set(0.16, 0.5, 0.12, 'YXZ'); }
-
-  // ------------------------------------------------------------------ baby bok choy: ivory curved stems flaring into jade leaves
-  { const stems = [], leaves = [], IV = col('#E8ECE1'), JADE = col('#2D5A3E'), JADE2 = col('#3A6E4B'), N5 = 5, baseAng = -0.62;
-    const base = new THREE.Vector3(0.03, surf(0.03, -0.02) + 0.003, -0.02);
+  // ------------------------------------------------------------------ baby bok choy: thick ivory S-curved stems dipped in the broth, jade leaf blades curling over the rim
+  { const stems = [], leaves = [], IV = col('#E8ECE1'), JADE = col('#2A5A3B'), JADE2 = col('#3C7650'), N5 = 5, tmp = new THREE.Color();
+    const sS = [0.034, 0.05, 0.066, 0.08, 0.092], sY = [0.0535, 0.0585, 0.0685, 0.0765, 0.082];                       // stem centreline (s = distance from the axis, y)
+    const lS = [0.092, 0.106, 0.1205, 0.1275, 0.1335, 0.142, 0.15], lY = [0.082, 0.0915, 0.0997, 0.1002, 0.099, 0.0925, 0.082];   // leaf centreline: over the rim lip, then drooping outside
     for (let k = 0; k < N5; k++) {
-      const f = (k - (N5 - 1) / 2), ang = baseAng + f * 0.17, len = 0.052 - Math.abs(f) * 0.004, lift = 0.008 + (2 - Math.abs(f)) * 0.0035, dx = Math.cos(ang), dz = Math.sin(ang);
-      const P = (s, h) => [base.x + dx * len * s + -dz * f * 0.004 * s, base.y + h, base.z + dz * len * s + dx * f * 0.004 * s];
-      stems.push(sweep([P(0, 0), P(0.35, lift * 0.8), P(0.7, lift * 1.05), P(1.0, lift * 0.9)], (u) => 0.0072 - 0.0028 * u, { radial: 6, segs: 12, flat: 0.52, color: IV }));
-      // leaf: continues the stem direction, cups upward and droops over the wall
-      const lenL = 0.058 - Math.abs(f) * 0.005, W = 0.021 - Math.abs(f) * 0.0025, [nu, nv] = Q.leaf, pos = [], col3 = [], idx = [], sx = -dz, sz = dx;
-      const tip = P(1.0, lift * 0.9);
-      for (let i = 0; i <= nu; i++) { const u = i / nu, wd = W * Math.pow(Math.sin(Math.PI * Math.min(1, 0.12 + u * 0.9)), 0.8) * (0.25 + 0.75 * Math.sin(Math.PI * Math.pow(u, 0.7))) ;
-        const cx = tip[0] + dx * lenL * u, cz = tip[2] + dz * lenL * u, cy = tip[1] + 0.012 * Math.sin(u * 2.4) - 0.016 * u * u;
-        for (let j = 0; j <= nv; j++) { const v = (j / nv) * 2 - 1, cup = 0.006 * v * v * (0.4 + u), ruffle = 0.0012 * Math.sin(v * 5 + u * 9 + k) * Math.abs(v) * u;
-          pos.push(cx + sx * v * wd, cy + cup + ruffle, cz + sz * v * wd); const c = JADE.clone().lerp(JADE2, Math.abs(v) * 0.7 * u + (k % 2) * 0.1); col3.push(c.r, c.g, c.b); } }
+      const f = k - (N5 - 1) / 2, ang = LAY.bok + f * 0.12, dx = Math.cos(ang), dz = Math.sin(ang), sx = -dz, sz = dx;
+      const lat = (s) => f * (0.0042 + 0.0032 * (s - 0.034) / 0.058) + 0.0042 * Math.sin(((s - 0.034) / 0.058) * Math.PI * 2);   // plan-view S-curve
+      const at = (s, y, l = lat(s)) => [dx * s + sx * l, y, dz * s + sz * l];
+      stems.push(sweep(sS.map((s, i) => at(s, sY[i] + 0.0008 * (2 - Math.abs(f)) * (i / 4))), (u) => 0.0082 - 0.0036 * u, { radial: 6, segs: Q.stem, flat: 0.52, color: (x, y) => tmp.copy(IV).lerp(JADE2, 0.4 * ss(y, 0.07, 0.086)).clone() }));
+      // leaf blade: spoon-shaped ribbon continuing the stem, cupped, ruffled at the edge
+      const spl = new THREE.CatmullRomCurve3(lS.map((s, i) => new THREE.Vector3(s, lY[i], 0)), false, 'centripetal'), [nu, nv] = Q.leaf, pos = [], c3 = [], idx = [], Wm = 0.0175 - Math.abs(f) * 0.0018, P = new THREE.Vector3();
+      for (let i = 0; i <= nu; i++) { const u = i / nu; spl.getPointAt(u, P); const s = P.x, wd = Wm * Math.pow(Math.sin(Math.PI * (0.1 + 0.9 * u)), 0.6), l0 = lat(0.092) + f * 0.003 * u;
+        for (let j = 0; j <= nv; j++) { const v = (j / nv) * 2 - 1, cup = 0.0055 * v * v * (0.4 + u), ruf = 0.0009 * Math.sin(v * 5 + u * 9 + k) * Math.abs(v) * u * (1 - u), [px, , pz] = at(s, 0, l0 + v * wd);
+          pos.push(px, P.y + cup + ruf, pz); const c = JADE.clone().lerp(JADE2, Math.abs(v) * 0.7 * u + (k % 2) * 0.1); c3.push(c.r, c.g, c.b); } }
       for (let i = 0; i < nu; i++) for (let j = 0; j < nv; j++) { const a = i * (nv + 1) + j, b = a + 1, c = a + nv + 1, d = c + 1; idx.push(a, c, b, b, c, d); }
-      const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); lg.setAttribute('color', new THREE.Float32BufferAttribute(col3, 3)); lg.setIndex(idx); lg.computeVertexNormals();
+      const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); lg.setAttribute('color', new THREE.Float32BufferAttribute(c3, 3)); lg.setIndex(idx); lg.computeVertexNormals();
       leaves.push(part(lg, null, null));
     }
-    add(merged(stems), mat({ vertexColors: true, roughness: 0.38, metalness: 0 }), 'bokChoyStems');
-    const leafMat = mat({ vertexColors: true, roughness: 0.42, metalness: 0, side: THREE.DoubleSide }); add(merged(leaves), leafMat, 'bokChoyLeaves'); }
+    add(merged(stems), mat({ vertexColors: true, roughness: 0.38, metalness: 0, envMapIntensity: 0.3 }), 'bokChoyStems');
+    add(merged(leaves), mat({ vertexColors: true, roughness: 0.42, metalness: 0, side: THREE.DoubleSide }), 'bokChoyLeaves'); }
 
-  // ------------------------------------------------------------------ sweet corn: instanced rounded beads clustered near the rim
-  { const [n, ws, hs] = Q.corn, CORN = col('#F4C430'), geo = new THREE.SphereGeometry(1, ws, hs); disposables.push(geo);
-    const mesh = new THREE.InstancedMesh(geo, mat({ color: CORN, roughness: 0.3, metalness: 0, envMapIntensity: 0.3 }), n); mesh.name = 'cornBeads'; mesh.frustumCulled = false;
-    const d = new THREE.Object3D(), ph = Math.PI * 0.72;   // front-left cluster
-    for (let i = 0; i < n; i++) { const a = ph + R(-0.34, 0.34), rr = R(0.05, 0.096), x = Math.cos(a) * rr, z = Math.sin(a) * rr, s = R(0.0068, 0.0084);
-      d.position.set(x, surf(x, z) + s * 0.55 + (rng() < 0.3 ? 0.006 : 0), z); d.scale.set(s, s * R(0.9, 1.05), s * R(0.95, 1.1)); d.rotation.set(R(0, 3), R(0, 3), 0); d.updateMatrix(); mesh.setMatrixAt(i, d.matrix); }
-    mesh.instanceMatrix.needsUpdate = true; mesh.castShadow = false; inner.add(mesh); disposables.push(mesh); }
-
-  // ------------------------------------------------------------------ scallion rings: instanced thin tori, spring-green outer band, pale-white centre
-  { const n = Q.rings, RR = 0.0095, TR = 0.003, tg = new THREE.TorusGeometry(RR, TR, 5, 12); tg.rotateX(Math.PI / 2);
-    const GREEN = col('#4CAF50'), PALE = col('#E6EBCB'), tmp = new THREE.Color();
-    const g = part(tg, null, (x, y, z) => { const d = Math.hypot(x, z); return tmp.copy(PALE).lerp(GREEN, THREE.MathUtils.smoothstep(d, RR - TR * 0.75, RR + TR * 0.1)).clone(); });
-    const mesh = new THREE.InstancedMesh(g, mat({ vertexColors: true, roughness: 0.4, metalness: 0 }), n); mesh.name = 'scallionRings'; mesh.frustumCulled = false; disposables.push(g);
-    const d = new THREE.Object3D();
-    for (let i = 0; i < n; i++) { const a = R(0, 6.283), rr = Math.sqrt(R(0.0, 0.85)) * 0.1, x = Math.cos(a) * rr, z = Math.sin(a) * rr, s = R(0.8, 1.2);
-      d.position.set(x, surf(x, z) + 0.0075 + R(0, 0.006), z); d.rotation.set(R(-0.3, 0.3), R(0, 3.14), R(-0.3, 0.3)); d.scale.set(s, s * 0.8, s); d.updateMatrix(); mesh.setMatrixAt(i, d.matrix); }
+  // ------------------------------------------------------------------ sweet corn: 12-16 golden beads, cluster nestled between the menma and the bok choy (second layer sits in the gaps of the first)
+  const CORN = { n: 14 };
+  { const geo = new THREE.SphereGeometry(1, Q.bead[0], Q.bead[1]); disposables.push(geo);
+    const mesh = new THREE.InstancedMesh(geo, mat({ color: '#F5C028', roughness: 0.3, metalness: 0, envMapIntensity: 0.3 }), CORN.n); mesh.name = 'cornBeads'; mesh.frustumCulled = false;
+    const [cx, cz] = P2(LAY.corn, 0.058), L1 = [], d = new THREE.Object3D(), sp = 0.0132;
+    for (let gz = -3; gz <= 3 && L1.length < 10; gz++) for (let gx = -3; gx <= 3 && L1.length < 10; gx++) { const x = gx * sp + (gz & 1 ? sp / 2 : 0), z = gz * sp * 0.87; if ((x * x) / 0.032 ** 2 + (z * z) / 0.021 ** 2 <= 1.0) L1.push([x + R(-0.0012, 0.0012), z + R(-0.0012, 0.0012), R(0.0068, 0.0078)]); }
+    const place = (i, x, y, z, s) => { d.position.set(cx + x, y, cz + z); d.scale.set(s, s * R(0.92, 1.0), s * R(0.96, 1.04)); d.rotation.set(R(0, 3), R(0, 3), 0); d.updateMatrix(); mesh.setMatrixAt(i, d.matrix); };
+    L1.forEach(([x, z, s], i) => place(i, x, BROTH_Y + s * 0.35, z, s));   // layer 1: about 65% above the surface, bead bottoms submerged
+    for (let i = L1.length; i < CORN.n; i++) { const a = L1[(i * 3) % L1.length], b = L1[(i * 3 + 2) % L1.length], x = (a[0] + b[0]) / 2, z = (a[1] + b[1]) / 2, s = R(0.0062, 0.0072), dd = Math.hypot(a[0] - b[0], a[1] - b[1]) / 2;
+      place(i, x, BROTH_Y + a[2] * 0.35 + Math.sqrt(Math.max(1e-8, (a[2] + s) ** 2 - dd * dd)) * 0.92, z, s); }   // layer 2: resting in the dip between two layer-1 beads
     mesh.instanceMatrix.needsUpdate = true; inner.add(mesh); disposables.push(mesh); }
 
-  // ------------------------------------------------------------------ nori sheet: gently warped plane tucked against the back wall, standing above the rim
-  { const w = 0.07, h = 0.075, nx = 8, ny = 6, g0 = new THREE.PlaneGeometry(w, h, nx, ny), p = g0.attributes.position;
-    for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), u = x / w, v = y / h + 0.5; p.setZ(i, 0.006 * Math.sin(u * 7 + v * 3) * v + 0.008 * u * u * v - 0.004 * Math.sin(v * 3.2)); p.setY(i, y + 0.002 * Math.sin(u * 9) * v); }
-    g0.computeVertexNormals();
-    const ang = -0.1, rb = innerR(0.07) - 0.002, lean = 0.5;   // lean the sheet along the sloping inner wall at the back (-z)
-    const m = new THREE.Matrix4().compose(new THREE.Vector3(Math.sin(ang) * (rb - 0.006), 0.084, -Math.cos(ang) * (rb - 0.006)), new THREE.Quaternion().setFromEuler(new THREE.Euler(-lean, ang * 0.5, 0, 'YXZ')), new THREE.Vector3(1, 1, 1));
-    g0.applyMatrix4(m); g0.deleteAttribute('uv');
-    add(g0, mat({ color: '#1E2621', roughness: 0.34, metalness: 0.08, envMapIntensity: 0.4, side: THREE.DoubleSide }), 'nori'); }
+  // ------------------------------------------------------------------ scallion rings: 7 double-ring cuts (spring-green rim, pale inner ring + core)
+  { const n = Q.scal, RR = 0.0082, TR = 0.002, GREEN = col('#43A047'), PALE = col('#D4E4AE'), CORE = col('#E6EFC8');
+    const outer = new THREE.TorusGeometry(RR, TR, 4, 10); outer.rotateX(Math.PI / 2); const innerR2 = new THREE.TorusGeometry(RR * 0.55, TR * 0.65, 4, 8); innerR2.rotateX(Math.PI / 2);
+    const disc = new THREE.CircleGeometry(RR * 0.55, 8); disc.rotateX(-Math.PI / 2); disc.translate(0, -0.0003, 0);
+    const g = merged([part(outer, null, GREEN), part(innerR2, null, PALE), part(disc, null, CORE)]); disposables.push(g);
+    const mesh = new THREE.InstancedMesh(g, mat({ vertexColors: true, roughness: 0.4, metalness: 0 }), n); mesh.name = 'scallionRings'; mesh.frustumCulled = false;
+    const d = new THREE.Object3D(), put = [], free = (x, z) => RIP.every(([rx, rz, rr]) => rr < 1e-4 || Math.hypot(x - rx, z - rz) > rr + RR + 0.004) && put.every(([px, pz]) => Math.hypot(x - px, z - pz) > 2.6 * RR);
+    for (let i = 0, tries = 0; i < n && tries < 400; tries++) { const a = R(0, 6.283), rr = Math.sqrt(R(0.04, 1.0)) * 0.092, x = Math.cos(a) * rr, z = Math.sin(a) * rr; if (!free(x, z)) continue;
+      const onNoodles = rr < 0.07; d.position.set(x, BROTH_Y + (onNoodles ? 0.0046 : 0.0012), z); d.rotation.set(R(-0.1, 0.1), R(0, 3.14), R(-0.1, 0.1)); d.scale.setScalar(R(0.85, 1.1)); d.updateMatrix(); put.push([x, z]); mesh.setMatrixAt(i++, d.matrix); }
+    mesh.instanceMatrix.needsUpdate = true; inner.add(mesh); disposables.push(mesh); }
+
+  // ------------------------------------------------------------------ nori: dark toasted olive-black, matte, tucked vertically into the back rim at a 20 degree jaunt
+  { const w = 0.07, h = 0.082, g0 = new THREE.PlaneGeometry(w, h, 7, 6), p = g0.attributes.position;
+    for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), u = x / w, v = y / h + 0.5; p.setZ(i, 0.0035 * Math.sin(u * 8 + v * 3) * v - (x * x) / (2 * 0.112)); p.setY(i, y + 0.0015 * Math.sin(u * 9) * v); }
+    g0.computeVertexNormals(); g0.deleteAttribute('uv');
+    const A = LAY.nori, lean = 20 * D2R, rb = 0.1005, yb = 0.056, o = [Math.cos(A), Math.sin(A)];
+    g0.applyMatrix4(M4([o[0] * rb + o[0] * Math.sin(lean) * h / 2, yb + Math.cos(lean) * h / 2, o[1] * rb + o[1] * Math.sin(lean) * h / 2], [lean, Math.PI / 2 - A, 0]));
+    add(g0, mat({ color: '#1A211B', roughness: 0.7, metalness: 0, envMapIntensity: 0.12, side: THREE.DoubleSide }), 'nori'); }
+
+  // ------------------------------------------------------------------ chili-oil droplets: tiny crimson lens-shaped beads floating on the broth around the toppings
+  { const n = Q.oil, geo = new THREE.SphereGeometry(1, 8, 5); disposables.push(geo);
+    const mesh = new THREE.InstancedMesh(geo, mat({ color: '#A91B0D', roughness: 0.1, metalness: 0, envMapIntensity: 0.9 }), n); mesh.name = 'oilBeads'; mesh.frustumCulled = false;
+    const d = new THREE.Object3D(), src = RIP.filter((r) => r[2] > 1e-4);
+    for (let i = 0, tries = 0; i < n && tries < 600; tries++) { const [rx, rz, rr] = src[Math.floor(R(0, src.length))], a = R(0, 6.283), dist = rr * R(1.05, 1.6) + 0.004, x = rx + Math.cos(a) * dist, z = rz + Math.sin(a) * dist;
+      if (Math.hypot(x, z) > BROTH_R - 0.012 || src.some(([ox, oz, or2]) => Math.hypot(x - ox, z - oz) < or2 + 0.003)) continue;
+      const s = R(0.0021, 0.0042); d.position.set(x, BROTH_Y + s * 0.18, z); d.scale.set(s, s * 0.5, s); d.rotation.set(0, R(0, 3), 0); d.updateMatrix(); mesh.setMatrixAt(i++, d.matrix); }
+    mesh.instanceMatrix.needsUpdate = true; inner.add(mesh); disposables.push(mesh); }
 
   // ------------------------------------------------------------------ steam: instanced soft billow planes, everything from one uniform (t)
   const steamGeo = new THREE.InstancedBufferGeometry(); steamGeo.copy(new THREE.PlaneGeometry(1, 1)); steamGeo.instanceCount = Q.steam; disposables.push(steamGeo);
@@ -232,8 +298,10 @@ export function createRamenBowl({ quality = 'high', scale = 1.0, envMap = null }
   const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
   const api = {
     group: root,
+    /** broth surface height in the group's local space (the steam plunge measures the camera's distance to this plane) */
+    brothY: BROTH_Y,
     /** t in 0..1: progress of the hero beat. Pure: only uniforms are written. */
-    setTime(t) { t = Math.min(1, Math.max(0, t)); brothU.uT.value = t * 2.2; steamU.uT.value = t; steamU.uInt.value = 0.62 + 0.6 * sm(0.55, 1.0, t); },
+    setTime(t) { t = Math.min(1, Math.max(0, t)); brothU.uT.value = t * 2.45; steamU.uT.value = t; steamU.uInt.value = 0.62 + 0.6 * sm(0.55, 1.0, t); },
     /** 0 = hidden, 1 = fully shown (scale pop for the whip reveal). */
     setReveal(k) { inner.visible = k > 0.001; inner.scale.setScalar(Math.max(0.001, k)); },
     stats() { let triangles = 0, drawCalls = 0; root.traverse((o) => { if (!o.isMesh || !o.visible) return; drawCalls++; const g = o.geometry; triangles += ((g.index ? g.index.count : g.attributes.position.count) / 3) * (o.isInstancedMesh ? o.count : (g.instanceCount ?? 1)); }); return { triangles: Math.round(triangles), drawCalls }; },
