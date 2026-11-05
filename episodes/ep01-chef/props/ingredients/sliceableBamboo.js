@@ -18,7 +18,7 @@ import * as THREE from 'three';
  *   slide      = easeOutCubic(u / 0.36)   pivot glides from the log to its fan landing spot while it falls
  */
 export const BAMBOO = Object.freeze({
-  count: 9, thickness: 0.026, gap: 0.003, rTip: 0.022, rBase: 0.058, zFront: 0.07,
+  count: 9, thickness: 0.024, gap: 0.008, rTip: 0.022, rBase: 0.058, zFront: 0.08,
   fan: Object.freeze({ radius: 0.1, step: 0.16, yaw: 0.8, tierLift: 1.03, tiers: 3 }),
   colors: Object.freeze({ core: '#E8D8B0', ring: '#D6C38E', pith: '#DCC892', sheath: '#BFA06E', sheathHi: '#CDB07A' }),
 });
@@ -76,7 +76,7 @@ export function createSliceableBamboo({ quality = 'high', envMap = null, count =
   for (let i = 0; i < count; i++) {
     const rF = rTip + slope * (i * pitch), rB = rF + slope * t, zF = zFront - i * pitch;
     const geo = sliceGeometry(rB, rF, t, seg); disposables.push(geo);
-    geo.translate(0, rB, 0);                                    // disc axis sits one (back) radius above the pivot, so the rim rests on the board
+    geo.translate(0, Math.max(rB, (rB + rF) / 2 + 0.0035), 0);   // disc axis sits one (largest) radius above the pivot, so the rim rests exactly on the board
     const mesh = new THREE.Mesh(geo, mat); mesh.name = 'bambooSlice'; mesh.castShadow = true; mesh.receiveShadow = true;
     const pivot = new THREE.Group(); pivot.name = 'slice' + i; pivot.rotation.order = 'YXZ'; pivot.add(mesh);
     pivot.position.set(0, 0, zF); pivot.userData = { index: i, rF, rB, front: zF };

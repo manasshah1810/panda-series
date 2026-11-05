@@ -217,8 +217,9 @@ export function createOpening({ scene, camera, kitchen, panda, knife, title, mar
 
   // ---------- master ----------
   let heroOn = false;   // when a hero-tease timeline is attached it owns the camera after OPENING_END
+  let knifeFreeAfter = Infinity;   // a later beat (the chop) may take over the knife after this master time
   function apply(t) {
-    updateKnife(t);
+    if (t <= knifeFreeAfter) updateKnife(t); else clip.constant = 1e4;
     if (!(heroOn && t > OPENING_END)) {
     const c = camAt(t); _p.set(c[0], c[1], c[2]); _l.set(c[3], c[4], c[5]);
     const kt = marks.knifeTrack; if (t > kt.from && t < kt.to) { knife.getWorldPosition(_k); _l.lerp(_k, kt.peakWeight * Math.sin(Math.PI * clamp01((t - kt.from) / (kt.to - kt.from)))); }
@@ -237,6 +238,8 @@ export function createOpening({ scene, camera, kitchen, panda, knife, title, mar
     /** Add the hero-tease timeline (heroTeaseBeat.js) right after the opening; the master then runs OPENING_END + hero duration. */
     attachHero(heroTl) { heroOn = true; heroTl.paused(false); master.add(heroTl, OPENING_END); return master; },
     /** Append a later beat (e.g. the mise-en-place timeline) at master time `at`; it must be paused-built and own its own camera. */
+    /** From master time `t` onwards the knife transform belongs to the beat that is attached later (it still gets its clipping plane released). */
+    releaseKnifeAfter(t) { knifeFreeAfter = t; },
     attachBeat(beatTl, at) { beatTl.paused(false); master.add(beatTl, at); return master; },
     seek(t) { master.time(Math.min(master.duration(), Math.max(0, t)), false); apply(master.time()); },
     knifeTip() { return new THREE.Vector3(0, KNIFE.tipY, 0).applyMatrix4(knife.matrixWorld); },

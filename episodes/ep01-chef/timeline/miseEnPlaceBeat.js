@@ -162,6 +162,6 @@ export function createMiseEnPlaceTimeline({ cameraRig, rawIngredients, pandaPaws
   if (overlayElement) overlayElement.style.opacity = saved ?? '0'; dim.forEach((d, i) => { d.l.intensity = savedLights[i]; }); if (spot) spot.intensity = savedSpot; hideDuringBeat.forEach((o, i) => { o.visible = savedVis[i]; });
   camera.position.copy(savedCam.p); camera.up.copy(savedCam.up); camera.fov = savedCam.fov; camera.quaternion.copy(savedCam.q); camera.updateProjectionMatrix();
 
-  tl.mise = { apply, state: s, duration: D, ranges: MISE_RANGES, origin, tags, paws: pandaPaws, marks: { P12, P13 }, dispose() { tags.forEach((m) => { m.userData.dispose(); m.removeFromParent(); }); } };
+  tl.mise = { apply, state: s, duration: D, hoverPrep, dir: DIR, pawEulerEnd: { x: -0.2 }, tagMeshes: tags, ranges: MISE_RANGES, origin, tags, paws: pandaPaws, marks: { P12, P13 }, dispose() { tags.forEach((m) => { m.userData.dispose(); m.removeFromParent(); }); } };
   return tl;
 }

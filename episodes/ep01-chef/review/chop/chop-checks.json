@@ -1,0 +1,493 @@
+{
+ "boot": {
+  "glError": 0,
+  "programs": 43,
+  "consoleErrors": [],
+  "pass": true
+ },
+ "stitch": {
+  "beats": {
+   "openingEnd": 10.8,
+   "heroDuration": 2.45,
+   "miseStart": 13.25,
+   "miseDuration": 15,
+   "chopStart": 28.25,
+   "chopDuration": 10.6,
+   "masterDuration": 38.85
+  },
+  "contiguous": true,
+  "mountedOnBoardFrame": true,
+  "beforeChop": {
+   "cone": true,
+   "sliceable": false
+  },
+  "duringChop": {
+   "cone": false,
+   "sliceable": true
+  },
+  "backAgain": {
+   "cone": true,
+   "sliceable": false
+  },
+  "sliceCount": 9,
+  "pass": true
+ },
+ "rigging": {
+  "slices": [
+   {
+    "i": 0,
+    "standing": {
+     "bottomY": 0,
+     "frontZ": 0.08,
+     "pivotZ": 0.08,
+     "rotX": 0
+    },
+    "flat": {
+     "rotX": 1.570796,
+     "minY": 0,
+     "height": 0.024,
+     "restsOnTier": true,
+     "forward": true
+    },
+    "minYOverAllU": 0,
+    "pass": true
+   },
+   {
+    "i": 1,
+    "standing": {
+     "bottomY": 0,
+     "frontZ": 0.048,
+     "pivotZ": 0.048,
+     "rotX": 0
+    },
+    "flat": {
+     "rotX": 1.570796,
+     "minY": 0.0247,
+     "height": 0.024,
+     "restsOnTier": true,
+     "forward": true
+    },
+    "minYOverAllU": 0,
+    "pass": true
+   },
+   {
+    "i": 2,
+    "standing": {
+     "bottomY": 0,
+     "frontZ": 0.016,
+     "pivotZ": 0.016,
+     "rotX": 0
+    },
+    "flat": {
+     "rotX": 1.570796,
+     "minY": 0.0494,
+     "height": 0.024,
+     "restsOnTier": true,
+     "forward": true
+    },
+    "minYOverAllU": 0,
+    "pass": true
+   },
+   {
+    "i": 3,
+    "standing": {
+     "bottomY": 0,
+     "frontZ": -0.016,
+     "pivotZ": -0.016,
+     "rotX": 0
+    },
+    "flat": {
+     "rotX": 1.570796,
+     "minY": 0,
+     "height": 0.024,
+     "restsOnTier": true,
+     "forward": true
+    },
+    "minYOverAllU": 0,
+    "pass": true
+   },
+   {
+    "i": 4,
+    "standing": {
+     "bottomY": 0,
+     "frontZ": -0.048,
+     "pivotZ": -0.048,
+     "rotX": 0
+    },
+    "flat": {
+     "rotX": 1.570796,
+     "minY": 0.0247,
+     "height": 0.024,
+     "restsOnTier": true,
+     "forward": true
+    },
+    "minYOverAllU": 0,
+    "pass": true
+   },
+   {
+    "i": 5,
+    "standing": {
+     "bottomY": 0,
+     "frontZ": -0.08,
+     "pivotZ": -0.08,
+     "rotX": 0
+    },
+    "flat": {
+     "rotX": 1.570796,
+     "minY": 0.0494,
+     "height": 0.024,
+     "restsOnTier": true,
+     "forward": true
+    },
+    "minYOverAllU": 0,
+    "pass": true
+   },
+   {
+    "i": 6,
+    "standing": {
+     "bottomY": 0,
+     "frontZ": -0.112,
+     "pivotZ": -0.112,
+     "rotX": 0
+    },
+    "flat": {
+     "rotX": 1.570796,
+     "minY": 0,
+     "height": 0.024,
+     "restsOnTier": true,
+     "forward": true
+    },
+    "minYOverAllU": 0,
+    "pass": true
+   },
+   {
+    "i": 7,
+    "standing": {
+     "bottomY": 0,
+     "frontZ": -0.144,
+     "pivotZ": -0.144,
+     "rotX": 0
+    },
+    "flat": {
+     "rotX": 1.570796,
+     "minY": 0.0247,
+     "height": 0.024,
+     "restsOnTier": true,
+     "forward": true
+    },
+    "minYOverAllU": 0,
+    "pass": true
+   },
+   {
+    "i": 8,
+    "standing": {
+     "bottomY": 0,
+     "frontZ": -0.176,
+     "pivotZ": -0.176,
+     "rotX": 0
+    },
+    "flat": {
+     "rotX": 1.570796,
+     "minY": 0.0494,
+     "height": 0.024,
+     "restsOnTier": true,
+     "forward": true
+    },
+    "minYOverAllU": 0,
+    "pass": true
+   }
+  ],
+  "pass": true
+ },
+ "strikes": {
+  "count": 9,
+  "perStrike": [
+   {
+    "i": 0,
+    "impact": 1.3900000000000001,
+    "fallenBeforeStrike": 0,
+    "sliceMovedAtImpact": [
+     0
+    ],
+    "edgeToContactMM": 0,
+    "edgeAboveBoardMM": 0,
+    "camBumpAtImpact": 0,
+    "minBump": -0.01,
+    "bumpAfter": true,
+    "flecks": [
+     0,
+     4,
+     0
+    ],
+    "pass": true
+   },
+   {
+    "i": 1,
+    "impact": 2.01,
+    "fallenBeforeStrike": 1,
+    "sliceMovedAtImpact": [
+     1
+    ],
+    "edgeToContactMM": 0,
+    "edgeAboveBoardMM": 0,
+    "camBumpAtImpact": 0,
+    "minBump": -0.01,
+    "bumpAfter": true,
+    "flecks": [
+     0,
+     4,
+     0
+    ],
+    "pass": true
+   },
+   {
+    "i": 2,
+    "impact": 2.63,
+    "fallenBeforeStrike": 2,
+    "sliceMovedAtImpact": [
+     2
+    ],
+    "edgeToContactMM": 0,
+    "edgeAboveBoardMM": 0,
+    "camBumpAtImpact": 0,
+    "minBump": -0.01,
+    "bumpAfter": true,
+    "flecks": [
+     0,
+     4,
+     0
+    ],
+    "pass": true
+   },
+   {
+    "i": 3,
+    "impact": 3.25,
+    "fallenBeforeStrike": 3,
+    "sliceMovedAtImpact": [
+     3
+    ],
+    "edgeToContactMM": 0,
+    "edgeAboveBoardMM": 0,
+    "camBumpAtImpact": 0,
+    "minBump": -0.01,
+    "bumpAfter": true,
+    "flecks": [
+     0,
+     4,
+     0
+    ],
+    "pass": true
+   },
+   {
+    "i": 4,
+    "impact": 3.87,
+    "fallenBeforeStrike": 4,
+    "sliceMovedAtImpact": [
+     4
+    ],
+    "edgeToContactMM": 0,
+    "edgeAboveBoardMM": 0,
+    "camBumpAtImpact": 0,
+    "minBump": -0.01,
+    "bumpAfter": true,
+    "flecks": [
+     0,
+     4,
+     0
+    ],
+    "pass": true
+   },
+   {
+    "i": 5,
+    "impact": 4.49,
+    "fallenBeforeStrike": 5,
+    "sliceMovedAtImpact": [
+     5
+    ],
+    "edgeToContactMM": 0,
+    "edgeAboveBoardMM": 0,
+    "camBumpAtImpact": 0,
+    "minBump": -0.01,
+    "bumpAfter": true,
+    "flecks": [
+     0,
+     4,
+     0
+    ],
+    "pass": true
+   },
+   {
+    "i": 6,
+    "impact": 5.109999999999999,
+    "fallenBeforeStrike": 6,
+    "sliceMovedAtImpact": [
+     6
+    ],
+    "edgeToContactMM": 0,
+    "edgeAboveBoardMM": 0,
+    "camBumpAtImpact": 0,
+    "minBump": -0.01,
+    "bumpAfter": true,
+    "flecks": [
+     0,
+     4,
+     0
+    ],
+    "pass": true
+   },
+   {
+    "i": 7,
+    "impact": 5.7299999999999995,
+    "fallenBeforeStrike": 7,
+    "sliceMovedAtImpact": [
+     7
+    ],
+    "edgeToContactMM": 0,
+    "edgeAboveBoardMM": 0,
+    "camBumpAtImpact": 0,
+    "minBump": -0.01,
+    "bumpAfter": true,
+    "flecks": [
+     0,
+     4,
+     0
+    ],
+    "pass": true
+   },
+   {
+    "i": 8,
+    "impact": 6.35,
+    "fallenBeforeStrike": 8,
+    "sliceMovedAtImpact": [
+     8
+    ],
+    "edgeToContactMM": 0,
+    "edgeAboveBoardMM": 0,
+    "camBumpAtImpact": 0,
+    "minBump": -0.01,
+    "bumpAfter": true,
+    "flecks": [
+     0,
+     4,
+     0
+    ],
+    "pass": true
+   }
+  ],
+  "pass": true
+ },
+ "flourish": {
+  "localZDrift": 0,
+  "bladeAngleRangeRad": 5.371,
+  "wink": {
+   "before": {
+    "lidR": 0.4
+   },
+   "end": {
+    "lidL": 0.05,
+    "lidR": 1,
+    "mCurve": 0.7
+   }
+  },
+  "pass": true
+ },
+ "scrub": {
+  "frames": 50,
+  "distinctFrames": 49,
+  "frameMismatches": [],
+  "stateMismatches": [],
+  "excursionDrift": false,
+  "reversal": {
+   "allFlatAtEnd": true,
+   "midStandingFrom4": true,
+   "allStandingAtStart": true,
+   "idempotent": true,
+   "pass": true
+  },
+  "pass": true
+ },
+ "budget": {
+  "newContentWithShadowPass": {
+   "calls": 19,
+   "triangles": 8928
+  },
+  "newContentMainPass": {
+   "calls": 10,
+   "triangles": 4608
+  },
+  "own": {
+   "triangles": 4320,
+   "drawCalls": 9
+  },
+  "fullScene": {
+   "t0.8": {
+    "withShadows": {
+     "calls": 124,
+     "triangles": 94164
+    },
+    "mainPass": {
+     "calls": 72,
+     "triangles": 53406
+    }
+   },
+   "t2": {
+    "withShadows": {
+     "calls": 124,
+     "triangles": 94164
+    },
+    "mainPass": {
+     "calls": 72,
+     "triangles": 53406
+    }
+   },
+   "t4.5": {
+    "withShadows": {
+     "calls": 124,
+     "triangles": 94164
+    },
+    "mainPass": {
+     "calls": 72,
+     "triangles": 53406
+    }
+   },
+   "t6.45": {
+    "withShadows": {
+     "calls": 124,
+     "triangles": 94164
+    },
+    "mainPass": {
+     "calls": 72,
+     "triangles": 53406
+    }
+   },
+   "t8": {
+    "withShadows": {
+     "calls": 152,
+     "triangles": 103766
+    },
+    "mainPass": {
+     "calls": 100,
+     "triangles": 63008
+    }
+   },
+   "t10": {
+    "withShadows": {
+     "calls": 152,
+     "triangles": 104386
+    },
+    "mainPass": {
+     "calls": 100,
+     "triangles": 63628
+    }
+   }
+  },
+  "pass": true,
+  "worstFullSceneMainPassCalls": 100,
+  "worstFullSceneMainPassTriangles": 63628
+ },
+ "noExternalAssets": {
+  "requested": [],
+  "pass": true
+ },
+ "pass": true
+}

@@ -11,6 +11,7 @@ import { createHeroTeaseTimeline, createHeroSpot, HERO_TIMES } from '../timeline
 import { createRawIngredients } from '../props/ingredients/rawIngredients.js';
 import { createMiseEnPlaceTimeline, createPandaPaws, MISE_DURATION, MARK_BOARD_ORIGIN } from '../timeline/miseEnPlaceBeat.js';
 import { createSliceableBamboo } from '../props/ingredients/sliceableBamboo.js';
+import { createAsmrChopTimeline, CHOP_TIMES } from '../timeline/asmrChopBeat.js';
 import { CAMERA_MARKS, M14_FRAMING_NUDGE } from '../kitchen/src/cameraMarks.js';
 import marks from '../review/openingMarks.json';
 
@@ -25,6 +26,7 @@ const scene = new THREE.Scene(); scene.background = new THREE.Color('#0d0c0b');
 const camera = new THREE.PerspectiveCamera(36, innerWidth / innerHeight, 0.05, 60);
 const kitchen = createKitchen({ quality: q.get('quality') || 'medium', mood: 'morning', stage: 4, renderer });
 scene.add(kitchen.root); kitchen.setLightsOn(1);
+scene.fog = new THREE.FogExp2('#9a9084', 0);   // density 0 until the chop beat's depth-of-field haze (created up front so no material ever recompiles mid-film)
 const panda = createPanda({ quality: q.get('quality') || 'medium', style: 'softClay', pose: 'neutralStand', receiveShadow: true, castShadow: true });
 panda.equip(chefOutfit); scene.add(panda.root);
 for (const l of kitchen.lights?.strips ?? []) l.visible = false;   // two faint under-shelf points: invisible at this framing, but they cost every pixel
@@ -33,7 +35,9 @@ for (const l of kitchen.lights?.strips ?? []) l.visible = false;   // two faint 
 // back counters sit behind Panda in the opening shots: a touch darker so his white fur separates from them
 { const bb = new THREE.Box3(), c = new THREE.Vector3(); kitchen.root.traverse((o) => { if (!o.isMesh || o.isInstancedMesh) return; bb.setFromObject(o); bb.getCenter(c); if (bb.max.z < 0.3 && c.y < 1.2 && o.material?.color) { o.material = o.material.clone(); o.material.color.multiplyScalar(0.72); } }); }
 const env = scene.environment ?? null;
-const knife = createKnife({ envMap: env }); const title = createWoodenTitle({ envMap: env }); scene.add(title.group);
+const knife = createKnife({ envMap: env });
+{ const kenv = kitchen._state?.env?.texture ?? null; if (kenv) knife.traverse((o) => { if (o.isMesh) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => { if (m.metalness > 0.3) { m.envMap = kenv; m.envMapIntensity = 0.7; } }); }); }   // steel needs something to reflect in the macro shots
+const title = createWoodenTitle({ envMap: env }); scene.add(title.group);
 const op = createOpening({ scene, camera, kitchen, panda, knife, title, marks, renderer });
 // ---- Beat 1: the hero tease (vegetarian Bamboo-Shoot Ramen on the island anchor, whip -> orbit -> steam plunge) ----
 const ramen = createRamenBowl({ quality: q.get('quality') || 'medium', scale: 1, envMap: kitchen._state?.env?.texture ?? null });
@@ -56,13 +60,20 @@ op.attachBeat(miseTl, OPENING_END + HERO_TIMES.duration);
 const sliceable = createSliceableBamboo({ quality: q.get('quality') === 'low' ? 'low' : q.get('quality') === 'medium' ? 'medium' : 'high', envMap: kitchen._state?.env?.texture ?? null });
 raw.group.add(sliceable.group); sliceable.group.visible = false;
 const render = () => renderer.render(scene, camera);
+// ---- Beat 3: the ASMR scroll-chop, stitched on after the mise-en-place beat: Beat 1 (opening) -> 1b (hero bowl) -> 2 (mise en place) -> 3 (chop)
+const vignette = document.getElementById('vignette'), CHOP_START = OPENING_END + HERO_TIMES.duration + MISE_DURATION;
+const chopTl = createAsmrChopTimeline({ cameraRig: { camera }, sliceable, rawIngredients: raw, miseTimeline: miseTl, panda, knife, opening: op, scene, lighting: { lights: kitchen.lights, spot: heroSpot }, fog: scene.fog, vignetteElement: vignette });
+op.releaseKnifeAfter(CHOP_START); op.attachBeat(chopTl, CHOP_START);
+{ const gv = sliceable.group.visible, fv = chopTl.chop.flecks.mesh.visible; sliceable.group.visible = true; chopTl.chop.flecks.mesh.visible = true; renderer.compile(scene, camera); sliceable.group.visible = gv; chopTl.chop.flecks.mesh.visible = fv; }   // warm the shaders so the first chop never hitches
 window.__op = {
-  THREE, op, scene, camera, renderer, kitchen, panda, knife, title, ramen, heroTl, heroSpot, HERO_TIMES, OPENING_END, raw, paws, miseTl, MISE_START: OPENING_END + HERO_TIMES.duration, MISE_DURATION,
+  THREE, op, scene, camera, renderer, kitchen, panda, knife, title, ramen, heroTl, heroSpot, HERO_TIMES, OPENING_END, raw, paws, miseTl, MISE_START: OPENING_END + HERO_TIMES.duration, MISE_DURATION, chopTl, CHOP_START, CHOP_DURATION: CHOP_TIMES.duration, vignette,
   setSize(w, h) { renderer.setSize(w, h); camera.aspect = w / h; },
   seek(t) { camera.aspect = renderer.domElement.width / renderer.domElement.height; op.seek(t); render(); },
   frame(t) { window.__op.seek(t); return window.__op.snap(); },
   /** canvas -> png, with the DOM steam-wash overlay composited on top (it is a DOM element in the player) */
-  snap() { const w = +(wash.style.opacity || 0), cv = renderer.domElement; if (!w) return cv.toDataURL('image/png'); const c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height; const g = c.getContext('2d'); g.drawImage(cv, 0, 0); g.fillStyle = 'rgba(245,240,232,' + w + ')'; g.fillRect(0, 0, c.width, c.height); return c.toDataURL('image/png'); },
+  snap() { const w = +(wash.style.opacity || 0), vg = +(vignette?.style.opacity || 0), cv = renderer.domElement; if (!w && !vg) return cv.toDataURL('image/png'); const c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height; const g = c.getContext('2d'); g.drawImage(cv, 0, 0);
+    if (vg) { const gr = g.createRadialGradient(c.width / 2, c.height / 2, Math.min(c.width, c.height) * 0.3, c.width / 2, c.height / 2, Math.hypot(c.width, c.height) * 0.5); gr.addColorStop(0, 'rgba(28,18,8,0)'); gr.addColorStop(1, 'rgba(28,18,8,' + vg + ')'); g.fillStyle = gr; g.fillRect(0, 0, c.width, c.height); }   // composites the DOM vignette
+    if (w) { g.fillStyle = 'rgba(245,240,232,' + w + ')'; g.fillRect(0, 0, c.width, c.height); } return c.toDataURL('image/png'); },
   /** hero-beat time (seconds from the start of the hero beat) -> data URL; optional free camera override for diagnostic stills */
   hero(local, cam) { const w = window.__op; camera.aspect = renderer.domElement.width / renderer.domElement.height; op.seek(OPENING_END - 1); op.seek(OPENING_END + local);   // (re-seek so a previous free-camera override is always replaced)
     if (cam) { camera.up.set(...(cam.up ?? [0, 1, 0])); camera.position.set(...cam.position); camera.fov = cam.fov; camera.lookAt(...cam.lookAt); camera.updateProjectionMatrix(); }
