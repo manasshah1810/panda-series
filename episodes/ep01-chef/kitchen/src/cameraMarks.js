@@ -18,6 +18,10 @@ export const CAMERA_MARKS = {
   // ---- Beat 2: mise en place (locked top-down over the cutting board). Authored for a board at (0, ~1.05, 1.1); miseEnPlaceBeat.js translates them onto the real board. `target` mirrors `lookAt`.
   M12_topdown_board_entry: { position: [0.0, 3.0, 1.1], lookAt: [0.0, 1.02, 1.1], target: [0.0, 1.02, 1.1], fov: 36, note: 'Top-down entry over the board while the steam wash clears', boardRelative: true },
   M13_topdown_board_lock: { position: [0.0, 2.6, 1.1], lookAt: [0.0, 1.02, 1.1], target: [0.0, 1.02, 1.1], fov: 34, note: 'Locked bird-eye view over the board for the twelve ingredient drops (board + outer pill badges fill the frame)', boardRelative: true },
+  // ---- Beat 3: the ASMR scroll-chop. Authored for a board at (0, ~1.05, 1.1) (same convention as M12/M13); asmrChopBeat.js translates it onto the real board.
+  M14_macro_chop_side: { position: [0.6, 1.08, 1.2], lookAt: [0.0, 1.05, 1.1], target: [0.0, 1.05, 1.1], fov: 28, note: 'Low, tight macro side-angle on the bamboo shoot and the knife (whip-down lands here)', boardRelative: true },
 };
 /** Which way the Panda faces for each mark during the opening (rotation about Y). */
-export const MARK_PANDA_ROT_Y = { M1_establish_back: Math.PI, M2_dolly_in_apron: Math.PI, M3_flip_tilt_up: Math.PI, M4_turn_front_low: 0, M5_throw_side: 0, M6_macro_board: 0, M7_title_lift: 0, M8_fourth_wall: 0, M7_title_end: 0, M8_whip_transit: 0, M9_hero_bowl_orbit_start: 0, M10_hero_bowl_orbit_end: 0, M11_steam_plunge: 0, M12_topdown_board_entry: 0, M13_topdown_board_lock: 0 };
+export const MARK_PANDA_ROT_Y = { M1_establish_back: Math.PI, M2_dolly_in_apron: Math.PI, M3_flip_tilt_up: Math.PI, M4_turn_front_low: 0, M5_throw_side: 0, M6_macro_board: 0, M7_title_lift: 0, M8_fourth_wall: 0, M7_title_end: 0, M8_whip_transit: 0, M9_hero_bowl_orbit_start: 0, M10_hero_bowl_orbit_end: 0, M11_steam_plunge: 0, M12_topdown_board_entry: 0, M13_topdown_board_lock: 0, M14_macro_chop_side: 0 };
+/** Board-relative nudge applied (to position AND target, so the view direction is unchanged) on top of M14 by the chop beat: centres the log's axis (y) and the slice fan (z) in frame. M14 itself stays exactly as specified. */
+export const M14_FRAMING_NUDGE = Object.freeze([0, 0.04, 0.03]);
